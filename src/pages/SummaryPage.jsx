@@ -61,6 +61,14 @@ export default function SummaryPage({ currentUser }) {
       // But for compatibility, let's try to resolve session if we can, or rely on bulk endpoint's year support.
 
       setLoading(true);
+      setComponents([]);
+      setRows([]);
+      setIndicatorMap({});
+      setCriteriaMap({});
+      setCommitteeMap({});
+      setComponentIndicatorsCount({});
+      setAllIndicatorsMap({});
+
       try {
         // Use year if available to fetch data directly
         const qsObj = { major_name: major };

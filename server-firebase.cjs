@@ -1021,15 +1021,39 @@ app.get('/api/bulk/session-summary', async (req, res) => {
     }
 
     // Fetch Components and Indicators
-    let compQuery = db.collection('quality_components').where('major_name', '==', major_name);
-    let indQuery = db.collection('indicators').where('major_name', '==', major_name);
-    if (year) {
-      compQuery = compQuery.where('year', '==', year);
-      indQuery = indQuery.where('year', '==', year);
-    }
-    const [compSnap, indSnap] = await Promise.all([compQuery.get(), indQuery.get()]);
-    const components = compSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const indicators = indSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let components = [];
+    let indicators = [];
+
+    const fetchItemsRobustly = async (collectionName) => {
+      let resultsMap = new Map();
+
+      if (year) {
+        const yearStr = String(year);
+        const yearNum = parseInt(year);
+
+        const queries = [
+          db.collection(collectionName).where('major_name', '==', major_name).where('year', '==', yearStr).get()
+        ];
+        if (!isNaN(yearNum) && String(yearNum) === yearStr) {
+          queries.push(db.collection(collectionName).where('major_name', '==', major_name).where('year', '==', yearNum).get());
+        }
+
+        const snaps = await Promise.all(queries);
+        snaps.forEach(snap => {
+          if (snap) snap.docs.forEach(doc => resultsMap.set(doc.id, { id: doc.id, ...doc.data() }));
+        });
+      } else {
+        const snap = await db.collection(collectionName).where('major_name', '==', major_name).get();
+        snap.docs.forEach(doc => resultsMap.set(doc.id, { id: doc.id, ...doc.data() }));
+      }
+
+      return Array.from(resultsMap.values());
+    };
+
+    [components, indicators] = await Promise.all([
+      fetchItemsRobustly('quality_components'),
+      fetchItemsRobustly('indicators')
+    ]);
 
     // Fetch ALL sessions for this major (for absolute fallback)
     const fetchAllMajorSessions = async () => {

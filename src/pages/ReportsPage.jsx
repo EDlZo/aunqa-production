@@ -69,7 +69,21 @@ export default function ReportsPage() {
   };
 
   const fetchAllData = async () => {
+    if (!selectedYear || !majorName) return; // Prevent early fetch
+
     setLoading(true);
+    // Clear old data to prevent flickering
+    setComponents([]);
+    setEvaluations([]);
+    setIndicators([]);
+    setEsarData({
+      history: '',
+      vision: '',
+      mission: '',
+      structure: '',
+      swot: { s: '', w: '', o: '', t: '' }
+    });
+
     try {
       const qs = new URLSearchParams({
         year: selectedYear,

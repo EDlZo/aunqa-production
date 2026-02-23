@@ -145,12 +145,12 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'approved': return <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">อนุมัติแล้ว</span>;
-      case 'pending_review': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">รอการตรวจสอบ</span>;
-      case 'revision_requested': return <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">ให้ปรับปรุง</span>;
-      case 'submitted':
-      case 'draft':
-      default: return null
+      case 'approved': return <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">อนุมัติแล้ว</span>;
+      case 'pending_review': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">รอการตรวจสอบ</span>;
+      case 'revision_requested': return <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">ให้ปรับปรุง</span>;
+      case 'submitted': return <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">ส่งตรวจแล้ว</span>;
+      case 'draft': return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">ฉบับร่าง</span>;
+      default: return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">บันทึกแล้ว</span>;
     }
   };
 
@@ -266,7 +266,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                 เกณฑ์มาตรฐาน
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
-                สถานะล่าสุด
+                สถานะ
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-48">
                 การจัดการ
@@ -315,7 +315,11 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                         <div className="flex flex-col items-center gap-1">
                           {evalData ? (
                             <>
-                              {getStatusBadge(evalData.status)}
+                              {mode === 'criteria' ? (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">กำหนดแล้ว</span>
+                              ) : (
+                                getStatusBadge(evalData.status)
+                              )}
                               {evalData.status === 'revision_requested' && evalData.feedback && (
                                 <button
                                   onClick={(e) => {
@@ -335,7 +339,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                               )}
                             </>
                           ) : (
-                            <span className="text-gray-300 text-xs italic">EMPTY</span>
+                            <span className="text-gray-400 text-xs italic">{mode === 'criteria' ? 'ยังไม่ได้กำหนด' : 'ยังไม่ได้ประเมิน'}</span>
                           )}
                         </div>
                       );
@@ -360,8 +364,8 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                               className={`text-xs px-3 py-1.5 rounded transition ${!canEdit && !canReview && currentUser?.role !== 'system_admin'
                                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                 : (mode === 'evaluation'
-                                  ? (canReview ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-800 text-white hover:bg-gray-900')
-                                  : 'bg-blue-600 text-white hover:bg-blue-700')
+                                  ? (canReview ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray hover:bg-gray-400')
+                                  : 'bg-gray-300 text-gray hover:bg-gray-400')
                                 }`}
                             >
                               {mode === 'evaluation'

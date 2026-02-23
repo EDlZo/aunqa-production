@@ -35,6 +35,10 @@ export default function AssessmentPage({ assessmentMode = 'evaluation', currentU
     const fetchFullSessionData = async () => {
       if (!selectedProgram) return;
       setLoading(true);
+      setComponents([]);
+      setSessionData({ evaluations: [], evaluationsActual: [] });
+      setIndicators({});
+
       try {
         const majorName = selectedProgram.majorName || selectedProgram.major_name || '';
         let sessionId = localStorage.getItem('assessment_session_id');

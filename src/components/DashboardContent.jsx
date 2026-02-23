@@ -125,7 +125,18 @@ export default function DashboardContent({ user }) {
   };
 
   const fetchDashboardData = async () => {
+    if (!selectedYear) return; // ป้องกันการดึงข้อมูลทั้งหมดตอนที่ยังไม่ได้เลือกปี
     setLoading(true);
+    setStats({
+      totalComponents: 0,
+      totalIndicators: 0,
+      completedAssessments: 0,
+      averageScore: 0,
+      componentProgress: [],
+      recentEvaluations: [],
+      allEvaluations: []
+    });
+
     try {
       const { majorName } = selectedProgram;
       const qs = new URLSearchParams({

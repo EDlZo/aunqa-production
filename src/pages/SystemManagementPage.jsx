@@ -1,8 +1,11 @@
-// src/pages/SystemManagementPage.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Users, Settings, Clock, Shield, ChevronRight, School } from 'lucide-react';
 
 export default function SystemManagementPage({ setActiveTab }) {
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     const menus = [
         {
             id: 'user_management',

@@ -89,6 +89,8 @@ export default function DefineComponentSection({ forcedMajor, forcedYear }) {
 
         const year = forcedYear || activeRound?.year || '';
 
+        if (!year) return; // Prevent early fetch
+
         setCurrentContext({
           facultyName: '',
           majorName: major

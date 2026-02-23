@@ -58,6 +58,11 @@ export default function App() {
     } catch { }
   }, []);
 
+  // เลื่อนหน้าต่างกลับไปบนสุดเสมอเมื่อสลับเมนู/แท็บ
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   // Fetch Active Round
   useEffect(() => {
     const checkActiveRound = async () => {
