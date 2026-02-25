@@ -163,16 +163,21 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
     let readOnly = false;
     if (mode === 'evaluation') {
       const evalData = localSessionData?.evaluationsActual?.find(r => String(r.indicator_id) === String(assessingIndicator.id));
-      const isPending = evalData?.status === 'pending_review';
       const isApproved = evalData?.status === 'approved';
+      const isPending = evalData?.status === 'pending_review';
 
-      // Managers reviewing pending items -> Read Only
-      if (isPending && ['sar_manager', 'qa_admin', 'system_admin'].includes(currentUser?.role)) {
+      const isSystemAdmin = currentUser?.role === 'system_admin';
+      const isReporter = currentUser?.role === 'reporter';
+      const isManager = ['sar_manager', 'qa_admin'].includes(currentUser?.role);
+
+      // If manager or view-only mode, set readOnly to true
+      if (isManager || isApproved || isPending) {
         readOnly = true;
       }
-      // Approved items -> Read Only for everyone (uiness system admin override, but usually readonly)
-      if (isApproved && currentUser?.role !== 'system_admin') {
-        readOnly = true;
+
+      // Override for system admin or reporter when it's not pending/approved
+      if ((isSystemAdmin || isReporter) && !isPending && !isApproved) {
+        readOnly = false;
       }
     }
 
@@ -287,7 +292,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                     {String(indicator.sequence).includes('.') ? (
                       <span className="text-gray-400 text-xs">{formatSequence(indicator.sequence)}</span>
                     ) : (
-                      <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-600 text-white rounded-full text-xs font-bold">
+                      <span className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white rounded-full text-xs font-bold">
                         {formatSequence(indicator.sequence)}
                       </span>
                     )}
@@ -339,7 +344,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                               )}
                             </>
                           ) : (
-                            <span className="text-gray-400 text-xs italic">{mode === 'criteria' ? 'ยังไม่ได้กำหนด' : 'ยังไม่ได้ประเมิน'}</span>
+                            <span className="text-gray-400 text-xs italic">{mode === 'criteria' ? 'ยังไม่ได้กำหนด' : 'ยังไม่ได้บันทึกข้อมูล'}</span>
                           )}
                         </div>
                       );
@@ -353,26 +358,64 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
 
                         const isApproved = evalData?.status === 'approved';
                         const isPending = evalData?.status === 'pending_review';
-                        const canEdit = !isPending && !isApproved;
-                        const canReview = isPending && ['sar_manager', 'qa_admin', 'system_admin'].includes(currentUser?.role);
+
+                        // Role-based permissions
+                        const isSystemAdmin = currentUser?.role === 'system_admin';
+                        const isReporter = currentUser?.role === 'reporter';
+                        const isManager = ['sar_manager', 'qa_admin'].includes(currentUser?.role);
+
+                        // Actions for Evaluation Mode
+                        const canRecordOrEdit = mode === 'evaluation' && (isReporter || isSystemAdmin) && !isPending && !isApproved;
+                        const canReview = mode === 'evaluation' && (isManager || isSystemAdmin) && isPending;
+                        const canViewOnly = mode === 'evaluation' && evalData && !canRecordOrEdit && !canReview;
+
+                        // Actions for Criteria Mode
+                        const canManageCriteria = mode === 'criteria' && (isSystemAdmin || isReporter); // Adjusted to match your usual pattern
 
                         return (
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleAssessClick(indicator)}
-                              disabled={!canEdit && !canReview && currentUser?.role !== 'system_admin'}
-                              className={`text-xs px-3 py-1.5 rounded transition ${!canEdit && !canReview && currentUser?.role !== 'system_admin'
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : (mode === 'evaluation'
-                                  ? (canReview ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-300 text-gray hover:bg-gray-400')
-                                  : 'bg-gray-300 text-gray hover:bg-gray-400')
-                                }`}
-                            >
-                              {mode === 'evaluation'
-                                ? (canReview ? 'ตรวจสอบ' : (evalData ? 'แก้ไขข้อมูล' : 'บันทึกข้อมูล'))
-                                : (evalData ? 'แก้ไขเกณฑ์' : 'กำหนดเกณฑ์ประเมิน')
-                              }
-                            </button>
+                          <div className="flex flex-col items-center gap-2">
+                            {mode === 'evaluation' ? (
+                              <>
+                                {canRecordOrEdit && (
+                                  <button
+                                    onClick={() => handleAssessClick(indicator)}
+                                    className="text-xs px-3 py-1.5 rounded transition bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                  >
+                                    {evalData ? 'แก้ไขข้อมูล' : 'บันทึกข้อมูล'}
+                                  </button>
+                                )}
+                                {canReview && (
+                                  <button
+                                    onClick={() => handleAssessClick(indicator)}
+                                    className="text-xs px-3 py-1.5 rounded transition bg-blue-600 text-white hover:bg-blue-700 font-bold w-full"
+                                  >
+                                    ตรวจสอบ
+                                  </button>
+                                )}
+                                {canViewOnly && (
+                                  <button
+                                    onClick={() => handleAssessClick(indicator)}
+                                    className="text-xs px-3 py-1.5 rounded transition bg-gray-50 text-blue-600 border border-blue-100 hover:bg-blue-50"
+                                  >
+                                    ดูข้อมูล
+                                  </button>
+                                )}
+                                {!evalData && isManager && (
+                                  <span className="text-xs text-gray-400 italic">รอผู้รับผิดชอบบันทึก</span>
+                                )}
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => handleAssessClick(indicator)}
+                                disabled={!canManageCriteria}
+                                className={`text-xs px-3 py-1.5 rounded transition ${!canManageCriteria
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  }`}
+                              >
+                                {evalData ? 'แก้ไขเกณฑ์' : 'กำหนดเกณฑ์ประเมิน'}
+                              </button>
+                            )}
 
                             {evalData && mode === 'evaluation' && (
                               <>
@@ -389,39 +432,6 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                     ส่งตรวจประเมิน
                                   </button>
                                 )}
-
-                                {/* Manager: Approve/Reject Buttons */}
-                                {evalData.status === 'pending_review' && (['sar_manager', 'qa_admin', 'system_admin'].includes(currentUser?.role)) && (
-                                  <div className="flex items-center space-x-1">
-                                    <button
-                                      onClick={() => {
-                                        const evalId = evalData.id || evalData._id;
-                                        if (evalId) updateStatus(evalId, 'approve');
-                                      }}
-                                      className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                                    >
-                                      อนุมัติ
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        const evalId = evalData.id || evalData._id;
-                                        if (evalId) {
-                                          showPrompt({
-                                            title: 'ระบุสิ่งที่ควรปรับปรุง',
-                                            message: 'โปรดระบุรายละเอียดที่ต้องการให้ผู้รับผิดชอบแก้ไข:',
-                                            placeholder: 'ระบุรายละเอียด...',
-                                            onConfirm: (fb) => {
-                                              if (fb) updateStatus(evalId, 'reject', { feedback: fb });
-                                            }
-                                          });
-                                        }
-                                      }}
-                                      className="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                                    >
-                                      ส่งกลับแก้
-                                    </button>
-                                  </div>
-                                )}
                               </>
                             )}
                           </div>
@@ -435,6 +445,6 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
           </tbody>
         </table>
       </div>
-    </div>
+    </div >
   );
 }

@@ -602,7 +602,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
       <div className="max-w-4xl mx-auto py-12">
         <div className="text-center mb-8">
           <ClipboardCheck className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900">สรุปผลการประเมิน</h1>
+          <h1 className="text-3xl font-bold text-gray-900">ผลการประเมิน</h1>
           <p className="text-gray-600 mt-2">กรุณาเลือกสาขาที่ต้องการประเมิน</p>
         </div>
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
@@ -636,7 +636,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">สรุปผลการประเมิน</h1>
+        <h1 className="text-3xl font-bold">ผลการประเมิน</h1>
         <p className="text-gray-600 mt-1">ประเมินผลการดำเนินงานและให้คะแนนสำหรับแต่ละตัวบ่งชี้</p>
       </div>
 
@@ -669,46 +669,47 @@ export default function CommitteeEvaluationPage({ currentUser }) {
       </div>
 
       {/* Steps section */}
-      {!viewComponent && (
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-8 mb-8 border border-blue-200">
-          <div className="flex items-center gap-3 mb-6">
-            <ClipboardCheck className="w-8 h-8 text-blue-600" />
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-8 mb-8 border border-blue-200">
+        <div className="flex items-center gap-3 mb-6">
+          <ClipboardCheck className="w-8 h-8 text-blue-600" />
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">ขั้นตอนการประเมินผลการดำเนินงาน</h2>
+            <p className="text-gray-600 text-sm">ทำตามขั้นตอนเพื่อประเมินผลการดำเนินงานให้ครบทุกตัวบ่งชี้</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">ขั้นตอนการประเมินผลการดำเนินงาน</h2>
-              <p className="text-gray-600 text-sm">ทำตามขั้นตอนเพื่อประเมินผลการดำเนินงานให้ครบทุกตัวบ่งชี้</p>
+              <h3 className="font-semibold text-gray-900 mb-1">เลือกองค์ประกอบ</h3>
+              <p className="text-sm text-gray-600">เลือกองค์ประกอบคุณภาพที่ต้องการประเมิน</p>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">เลือกองค์ประกอบ</h3>
-                <p className="text-sm text-gray-600">เลือกองค์ประกอบคุณภาพที่ต้องการประเมิน</p>
-              </div>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">ประเมินตัวบ่งชี้</h3>
+              <p className="text-sm text-gray-600">ให้คะแนนและข้อเสนอแนะสำหรับแต่ละตัวบ่งชี้</p>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">ประเมินตัวบ่งชี้</h3>
-                <p className="text-sm text-gray-600">ให้คะแนนและข้อเสนอแนะสำหรับแต่ละตัวบ่งชี้</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">ตรวจสอบและบันทึก</h3>
-                <p className="text-sm text-gray-600">ตรวจสอบความถูกต้องและบันทึกผลการประเมิน</p>
-              </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">ตรวจสอบและบันทึก</h3>
+              <p className="text-sm text-gray-600">ตรวจสอบความถูกต้องและบันทึกผลการประเมิน</p>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {!viewComponent ? (
         <>
           {/* ตารางองค์ประกอบหลัก */}
-          <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden mb-8">
+          <div className="bg-white shadow-md border border-gray-200 rounded-xl overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-gray-200 bg-white">
+              <h3 className="text-lg font-bold text-gray-900">เลือกองค์ประกอบคุณภาพเพื่อประเมิน</h3>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">

@@ -1,11 +1,11 @@
 // src/components/AssessmentFormModal.jsx
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X, Target, BarChart2 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 import { BASE_URL } from '../config/api.js';
 
 
-export default function AssessmentFormModal({ indicator, selectedProgram, onComplete, onCancel, activeYear }) {
+export default function AssessmentFormModal({ indicator, selectedProgram, onComplete, onCancel, activeYear, readOnly }) {
   const { showAlert } = useModal();
   const [targetValue, setTargetValue] = useState('');
   const [score, setScore] = useState('');
@@ -142,36 +142,38 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
 
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-start bg-gray-50/50">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">ผลการดำเนินการ</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            {indicator.sequence} : {indicator.indicator_name}
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-blue-200">
+              {indicator.sequence}
+            </div>
+            <h3 className="text-lg font-bold text-gray-800">เป้าหมายและเกณฑ์ประเมิน</h3>
+          </div>
+          <p className="text-sm text-gray-500 font-medium ml-10">
+            {indicator.indicator_name}
           </p>
         </div>
         <button
           onClick={onCancel}
-          className="flex items-center text-gray-500 hover:text-gray-700 mb-2 transition-colors"
+          className="bg-white p-2 rounded-xl shadow-sm text-gray-400 hover:text-gray-600 hover:shadow-md transition-all"
         >
-          <ArrowLeft className="w-5 h-5 mr-1" />
-          กลับ
+          <X className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="p-6">
+      <div className="p-8">
         {/* ข้อมูลตัวบ่งชี้ */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="text-gray-500">ชนิดตัวบ่งชี้</div>
-              <div className="font-medium">{indicator.indicator_type || '-'}</div>
-            </div>
-            <div>
-              <div className="text-gray-500">ชนิดเกณฑ์มาตรฐาน</div>
-              <div className="font-medium">{indicator.criteria_type || '-'}</div>
-            </div>
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
+            <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">ชนิดตัวบ่งชี้</div>
+            <div className="text-sm font-semibold text-gray-700">{indicator.indicator_type || '-'}</div>
+          </div>
+          <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
+            <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">ชนิดเกณฑ์มาตรฐาน</div>
+            <div className="text-sm font-semibold text-gray-700">{indicator.criteria_type || '-'}</div>
           </div>
         </div>
 
@@ -213,9 +215,10 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
                 type="text"
                 value={targetValue}
                 onChange={(e) => setTargetValue(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm disabled:opacity-60"
                 placeholder="กรอกค่าเป้าหมาย"
                 required
+                disabled={readOnly}
               />
             </div>
             <div>
@@ -229,9 +232,10 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
                 step="0.1"
                 value={score}
                 onChange={(e) => setScore(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm disabled:opacity-60"
                 placeholder="0.0 - 5.0"
                 required
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -242,8 +246,9 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows="4"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm disabled:opacity-60"
               placeholder="กรอกหมายเหตุเพิ่มเติม (ถ้ามี)"
+              disabled={readOnly}
             />
           </div>
 
@@ -257,13 +262,15 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
             >
               ยกเลิก
             </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'กำลังบันทึก...' : 'บันทึกการประเมิน'}
-            </button>
+            {!readOnly && (
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'กำลังบันทึก...' : 'บันทึกการประเมิน'}
+              </button>
+            )}
           </div>
         </form>
 

@@ -257,37 +257,42 @@ export default function RoundManagementPage({ setActiveTab }) {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                            <h2 className="text-xl font-semibold text-gray-900">
-                                {formData.id ? 'แก้ไขรอบประเมิน' : 'เพิ่มรอบประเมินใหม่'}
-                            </h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X className="w-6 h-6" />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[95vh]">
+                        <div className="px-8 py-5 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
+                                    <Clock className="w-5 h-5 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    {formData.id ? 'แก้ไขรายละเอียดรอบประเมิน' : 'เพิ่มรอบประเมินใหม่'}
+                                </h2>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <X className="w-5 h-5 text-gray-400" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6">
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto">
+                            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ปีการศึกษา</label>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-gray-500">ปีการศึกษา</label>
                                         <input
                                             type="text"
                                             required
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                             value={formData.year}
                                             onChange={e => setFormData({ ...formData, year: e.target.value })}
                                             placeholder="เช่น 2567"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อรอบ</label>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-gray-500">ชื่อรอบ</label>
                                         <input
                                             type="text"
                                             required
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="เช่น ปีการศึกษา 2567"
@@ -295,55 +300,55 @@ export default function RoundManagementPage({ setActiveTab }) {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-gray-500">วันที่เริ่มต้น</label>
                                         <input
                                             type="date"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                             value={formData.start_date || ''}
                                             onChange={e => setFormData({ ...formData, start_date: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-gray-500">วันที่สิ้นสุด</label>
                                         <input
                                             type="date"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                             value={formData.end_date || ''}
                                             onChange={e => setFormData({ ...formData, end_date: e.target.value })}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="flex items-center">
+                                <div className="flex items-center p-2">
                                     <input
                                         type="checkbox"
                                         id="is_active"
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-lg transition-all"
                                         checked={formData.is_active}
                                         onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
                                     />
-                                    <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+                                    <label htmlFor="is_active" className="ml-3 block text-sm font-medium text-gray-700">
                                         ตั้งเป็นรอบปัจจุบัน
                                     </label>
                                 </div>
                             </div>
 
-                            <div className="mt-6 flex justify-end gap-3">
+                            <div className="pt-6 flex gap-3 border-t border-gray-100">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                    className="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold hover:bg-gray-50 transition-all active:scale-95 text-sm"
                                 >
                                     ยกเลิก
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 flex items-center"
+                                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center justify-center gap-2 text-sm"
                                 >
-                                    <Save className="w-4 h-4 mr-1.5" />
-                                    บันทึก
+                                    <Save className="w-5 h-5" />
+                                    {formData.id ? 'บันทึกการแก้ไข' : 'สร้างรอบประเมิน'}
                                 </button>
                             </div>
                         </form>

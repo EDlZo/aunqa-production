@@ -275,103 +275,115 @@ export default function ProgramManagement({ setActiveTab }) {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                        <div className="px-6 py-4 border-b flex justify-between items-center">
-                            <h2 className="text-xl font-semibold">
-                                {editMode ? 'แก้ไขข้อมูล' : 'เพิ่ม'}
-                                {activeSubTab === 'levels' ? 'ระดับ' : activeSubTab === 'faculties' ? 'คณะ' : 'สาขาวิชา'}
-                            </h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X className="w-6 h-6" />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[95vh]">
+                        <div className="px-8 py-5 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-200">
+                                    {activeSubTab === 'levels' ? <Layers className="w-5 h-5 text-white" /> :
+                                        activeSubTab === 'faculties' ? <School className="w-5 h-5 text-white" /> :
+                                            <BookOpen className="w-5 h-5 text-white" />}
+                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    {editMode ? 'แก้ไขข้อมูล' : 'เพิ่ม'}
+                                    {activeSubTab === 'levels' ? 'ระดับ' : activeSubTab === 'faculties' ? 'คณะ' : 'สาขาวิชา'}
+                                </h2>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <X className="w-5 h-5 text-gray-400" />
                             </button>
                         </div>
-                        <form onSubmit={handleSave}>
-                            <div className="p-6 space-y-4">
-                                {activeSubTab === 'levels' && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อระดับ</label>
-                                        <input
-                                            type="text"
-                                            className="w-full border rounded-md px-3 py-2"
-                                            required
-                                            value={levelForm.name}
-                                            onChange={(e) => setLevelForm({ name: e.target.value })}
-                                        />
-                                    </div>
-                                )}
-                                {activeSubTab === 'faculties' && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อคณะ</label>
-                                        <input
-                                            type="text"
-                                            className="w-full border rounded-md px-3 py-2"
-                                            required
-                                            value={facultyForm.name}
-                                            onChange={(e) => setFacultyForm({ name: e.target.value })}
-                                        />
-                                    </div>
-                                )}
-                                {activeSubTab === 'programs' && (
-                                    <>
+                        <form onSubmit={handleSave} className="flex flex-col overflow-hidden">
+                            <div className="p-8 space-y-6 overflow-y-auto">
+                                <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                                    {activeSubTab === 'levels' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อสาขาวิชา</label>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">ชื่อระดับ</label>
                                             <input
                                                 type="text"
-                                                className="w-full border rounded-md px-3 py-2"
+                                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                                 required
-                                                value={programForm.majorName}
-                                                onChange={(e) => setProgramForm({ ...programForm, majorName: e.target.value })}
+                                                value={levelForm.name}
+                                                onChange={(e) => setLevelForm({ name: e.target.value })}
+                                                placeholder="เช่น ปริญญาตรี"
                                             />
                                         </div>
+                                    )}
+                                    {activeSubTab === 'faculties' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">ระดับ</label>
-                                            <select
-                                                className="w-full border rounded-md px-3 py-2"
+                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">ชื่อคณะ</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                                 required
-                                                value={programForm.levelId}
-                                                onChange={(e) => setProgramForm({ ...programForm, levelId: e.target.value })}
-                                            >
-                                                <option value="">-- เลือกระดับ --</option>
-                                                {levels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                            </select>
+                                                value={facultyForm.name}
+                                                onChange={(e) => setFacultyForm({ name: e.target.value })}
+                                                placeholder="เช่น คณะวิศวกรรมศาสตร์"
+                                            />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">คณะ</label>
-                                            <select
-                                                className="w-full border rounded-md px-3 py-2"
-                                                required
-                                                value={programForm.facultyId}
-                                                onChange={(e) => setProgramForm({ ...programForm, facultyId: e.target.value })}
-                                            >
-                                                <option value="">-- เลือกคณะ --</option>
-                                                {faculties.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                                            </select>
+                                    )}
+                                    {activeSubTab === 'programs' && (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">ชื่อสาขาวิชา</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                                                    required
+                                                    value={programForm.majorName}
+                                                    onChange={(e) => setProgramForm({ ...programForm, majorName: e.target.value })}
+                                                    placeholder="เช่น วิศวกรรมคอมพิวเตอร์"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-blue-500">ระดับ</label>
+                                                <select
+                                                    className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                                                    required
+                                                    value={programForm.levelId}
+                                                    onChange={(e) => setProgramForm({ ...programForm, levelId: e.target.value })}
+                                                >
+                                                    <option value="">-- เลือกระดับ --</option>
+                                                    {levels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-blue-500">คณะ</label>
+                                                <select
+                                                    className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+                                                    required
+                                                    value={programForm.facultyId}
+                                                    onChange={(e) => setProgramForm({ ...programForm, facultyId: e.target.value })}
+                                                >
+                                                    <option value="">-- เลือกคณะ --</option>
+                                                    {faculties.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                                </select>
+                                            </div>
                                         </div>
-                                    </>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                            <div className="px-6 py-4 bg-gray-50 border-t flex justify-end space-x-3 rounded-b-lg">
+                            <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex gap-3 flex-shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-100"
+                                    className="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold hover:bg-gray-50 transition-all active:scale-95 text-sm"
                                 >
                                     ยกเลิก
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center justify-center gap-2 text-sm disabled:opacity-50"
                                 >
-                                    {loading ? 'กำลังบันทึก...' : 'บันทึก'}
+                                    <Save className="w-5 h-5" />
+                                    {loading ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
-            )
-            }
+            )}
         </div >
     );
 }

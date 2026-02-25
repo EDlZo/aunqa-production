@@ -672,9 +672,9 @@ export default function SummaryPage({ currentUser }) {
       )}
       {/* Components Selection */}
       {!viewComponent && !detailIndicator && (
-        <div className="bg-white rounded-lg shadow-md mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">เลือกองค์ประกอบคุณภาพเพื่อดูสรุปผล</h3>
+        <div className="bg-white shadow-md border border-gray-200 rounded-xl overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-gray-200 bg-white">
+            <h3 className="text-lg font-bold text-gray-900">เลือกองค์ประกอบคุณภาพเพื่อดูสรุปผล</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

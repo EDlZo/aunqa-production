@@ -16,7 +16,8 @@ import {
   Link2,
   AlertCircle,
   Clock,
-  ArrowLeft
+  ArrowLeft,
+  Upload
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 
@@ -40,6 +41,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
   const [loading, setLoading] = useState(false);
   const [evaluationHistory, setEvaluationHistory] = useState([]);
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [pendingEvidenceFiles, setPendingEvidenceFiles] = useState([]); // ไฟล์หลักฐานที่ยังไม่ได้บันทึก
   const fileInputRef = useRef(null);
 
@@ -602,9 +604,10 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 step="0.1"
                 value={operationScore}
                 onChange={(e) => setOperationScore(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder={`0.0 - ${criteriaData.score || "5.0"}`}
                 required
+                disabled={readOnly}
               />
             </div>
             <div>
@@ -619,9 +622,10 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 step="0.1"
                 value={referenceScore}
                 onChange={(e) => setReferenceScore(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 placeholder={`0.0 - ${criteriaData.score || "5.0"}`}
                 required
+                disabled={readOnly}
               />
             </div>
             <div>
@@ -632,7 +636,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
               <select
                 value={goalAchievement}
                 onChange={(e) => setGoalAchievement(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 required
                 disabled={readOnly}
               >
@@ -747,24 +751,26 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
               {readOnly ? 'ปิด' : 'ยกเลิก'}
             </button>
 
-            {readOnly && onApprove && onReject && evaluationHistory.length > 0 && evaluationHistory[0].status === 'pending_review' && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => onReject(evaluationHistory[0].id || evaluationHistory[0]._id)}
-                  className="px-6 py-2 bg-rose-600 text-white font-bold rounded hover:bg-rose-700 transition-colors flex-1"
-                >
-                  ส่งกลับแก้ไข
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onApprove(evaluationHistory[0].id || evaluationHistory[0]._id)}
-                  className="px-6 py-2 bg-emerald-600 text-white font-bold rounded hover:bg-emerald-700 transition-colors flex-1"
-                >
-                  อนุมัติ
-                </button>
-              </>
-            )}
+            {readOnly && onApprove && onReject && evaluationHistory.length > 0 &&
+              evaluationHistory[0].status === 'pending_review' &&
+              (['sar_manager', 'qa_admin', 'system_admin'].includes(currentUser?.role)) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onReject(evaluationHistory[0].id || evaluationHistory[0]._id)}
+                    className="px-6 py-2 bg-rose-600 text-white font-bold rounded hover:bg-rose-700 transition-colors flex-1"
+                  >
+                    ส่งกลับแก้ไข
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onApprove(evaluationHistory[0].id || evaluationHistory[0]._id)}
+                    className="px-6 py-2 bg-emerald-600 text-white font-bold rounded hover:bg-emerald-700 transition-colors flex-1"
+                  >
+                    อนุมัติ
+                  </button>
+                </>
+              )}
 
             {!readOnly && (
               <button
@@ -856,32 +862,35 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
       {/* Evidence Modal ยังจำเป็นต้องใช้เป็น Overlay เพื่อคงความง่ายในการกรอก metadata */}
       {showEvidenceModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-              <h4 className="font-bold text-gray-800">เพิ่มรายละเอียดหลักฐาน</h4>
-              <button onClick={() => setShowEvidenceModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+              <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-blue-600" />
+                เพิ่มรายละเอียดหลักฐาน
+              </h4>
+              <button onClick={() => setShowEvidenceModal(false)} className="bg-gray-50 p-1 rounded-full shadow-sm text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-4 gap-3">
                 <div className="col-span-1">
-                  <label className="block text-xs font-bold text-gray-500 mb-1">ลำดับ</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 px-1">ลำดับ</label>
                   <input
                     type="text"
                     value={evidenceNumber}
                     onChange={(e) => setEvidenceNumber(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
                     placeholder="1.1-1"
                   />
                 </div>
                 <div className="col-span-3">
-                  <label className="block text-xs font-bold text-gray-500 mb-1">ชื่อเรียกหลักฐาน</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 px-1">ชื่อเรียกหลักฐาน</label>
                   <input
                     type="text"
                     value={evidenceName}
                     onChange={(e) => setEvidenceName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm"
                     placeholder="เช่น รายงานการประชุม..."
                   />
                 </div>
@@ -889,18 +898,18 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-2">ประเภทหลักฐาน</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
                   <button
                     type="button"
                     onClick={() => setEvidenceType('file')}
-                    className={`flex-1 py-2 px-3 rounded border text-sm font-bold flex items-center justify-center gap-2 transition-colors ${evidenceType === 'file' ? 'bg-blue-50 border-blue-600 text-blue-600' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'file' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     <FileText className="w-4 h-4" /> ไฟล์
                   </button>
                   <button
                     type="button"
                     onClick={() => setEvidenceType('url')}
-                    className={`flex-1 py-2 px-3 rounded border text-sm font-bold flex items-center justify-center gap-2 transition-colors ${evidenceType === 'url' ? 'bg-green-50 border-green-600 text-green-600' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'url' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     <Link2 className="w-4 h-4" /> URL
                   </button>
@@ -909,23 +918,53 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
 
               {evidenceType === 'file' ? (
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1">อัปโหลดไฟล์ (PDF/Image/Word)</label>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                    onChange={(e) => setEvidenceFiles(Array.from(e.target.files || []))}
-                    className="w-full text-sm block"
-                  />
+                  <div className="mt-1">
+                    <input
+                      type="file"
+                      id="evidence-file-input"
+                      ref={fileInputRef}
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      onChange={(e) => setEvidenceFiles(Array.from(e.target.files || []))}
+                      style={{ display: 'none' }}
+                    />
+                    <label
+                      htmlFor="evidence-file-input"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          setEvidenceFiles(Array.from(e.dataTransfer.files));
+                        }
+                      }}
+                      className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 group ${isDragging ? 'bg-blue-50 border-blue-500 scale-[1.02]' : 'bg-gray-50 border-gray-300 hover:bg-gray-100 hover:border-blue-400'}`}
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div className="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                          <Upload className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <p className="mb-1 text-sm text-gray-700 font-semibold">
+                          {evidenceFiles.length > 0 ? 'เลือกไฟล์ใหม่' : 'คลิกเพื่อเลือกไฟล์'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {evidenceFiles.length > 0 ? evidenceFiles[0].name : 'PDF, JPG, PNG หรือ Word (ไม่เกิน 10MB)'}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               ) : (
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-1">ลิงก์ URL</label>
+                <div className="animate-in slide-in-from-left-2 duration-200">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 px-1">ลิงก์ URL</label>
                   <input
                     type="url"
                     value={evidenceUrl}
                     onChange={(e) => setEvidenceUrl(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm"
                     placeholder="https://..."
                   />
                 </div>
