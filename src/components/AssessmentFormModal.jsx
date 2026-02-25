@@ -10,7 +10,6 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
   const [targetValue, setTargetValue] = useState('');
   const [score, setScore] = useState('');
   const [comment, setComment] = useState('');
-  const [evidenceFile, setEvidenceFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [evaluationHistory, setEvaluationHistory] = useState([]);
 
@@ -121,9 +120,7 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
       formData.append('major_name', major);
       if (activeYear) formData.append('year', activeYear);
 
-      if (evidenceFile) {
-        formData.append('evidence_file', evidenceFile);
-      }
+      if (activeYear) formData.append('year', activeYear);
 
       const res = await fetch(`${BASE_URL}/api/evaluations`, {
         method: 'POST',
@@ -143,14 +140,6 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
     setLoading(false);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.size > 10 * 1024 * 1024) {
-      showAlert({ title: 'ไฟล์มีขนาดใหญ่เกินไป', message: 'ขนาดไฟล์ต้องไม่เกิน 10MB', type: 'warning' });
-      return;
-    }
-    setEvidenceFile(file);
-  };
 
   return (
     <div className="bg-white rounded-lg shadow-md">
@@ -258,18 +247,6 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">ไฟล์หลักฐาน</label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              accept=".pdf,.jpg,.jpeg,.png"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              รองรับไฟล์ PDF และรูปภาพ (ขนาดไม่เกิน 10MB)
-            </p>
-          </div>
 
           {/* ปุ่มดำเนินการ */}
           <div className="flex gap-3">
