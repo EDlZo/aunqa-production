@@ -541,10 +541,10 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       ยกเลิก
                     </button>
                     <button
-                      className="px-8 py-2.5 text-sm font-bold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-900/20 transition-all flex items-center gap-2"
+                      className="px-8 py-2.5 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-indigo-900/20 transition-all flex items-center gap-2"
                       onClick={handleSaveCommittee}
                     >
-                      <Save className="w-4 h-4" />
+
                       บันทึกผลการประเมิน
                     </button>
                   </div>
