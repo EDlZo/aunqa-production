@@ -99,13 +99,13 @@ export default function Header({
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all duration-200 border border-transparent hover:border-gray-200 group"
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm transition-transform group-hover:scale-105 ${rolePermissions[currentUser.role_id]?.color || 'bg-gray-400'
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm transition-transform group-hover:scale-105 ${rolePermissions[currentUser.role]?.color || 'bg-gray-400'
                     }`}>
-                    {currentUser.name?.charAt(0)?.toUpperCase() || 'U'}
+                    {(currentUser.full_name || currentUser.name)?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div className="hidden md:block text-left">
-                    <div className="text-sm font-semibold text-gray-900 leading-tight">{currentUser.name}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{rolePermissions[currentUser.role_id]?.name || 'User'}</div>
+                    <div className="text-sm font-semibold text-gray-900 leading-tight">{currentUser.full_name || currentUser.name}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">{rolePermissions[currentUser.role]?.name || 'สมาชิก'}</div>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -116,10 +116,10 @@ export default function Header({
                       className="fixed inset-0 z-10"
                       onClick={() => setIsProfileOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 mt-2 w-43 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20 animate-in fade-in zoom-in-95 duration-100">
                       <div className="px-4 py-2 border-b border-gray-50 md:hidden">
-                        <p className="text-sm font-medium text-gray-900 truncate">{currentUser.name}</p>
-                        <p className="text-xs text-gray-500">{rolePermissions[currentUser.role_id]?.name || 'User'}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{currentUser.full_name || currentUser.name}</p>
+                        <p className="text-xs text-gray-500">{rolePermissions[currentUser.role]?.name || 'สมาชิก'}</p>
                       </div>
 
                       {currentUser.role === 'system_admin' && (
@@ -147,7 +147,7 @@ export default function Header({
                         <div className="p-1.5 bg-red-100 rounded-2xl">
                           <LogOut className="w-4 h-4" />
                         </div>
-                        <span>ออกจากระบบ</span>
+                        <span className="whitespace-nowrap">ออกจากระบบ</span>
                       </button>
                     </div>
                   </>
@@ -196,13 +196,13 @@ export default function Header({
                 <div className="border-t border-gray-200 mt-4 pt-4">
                   <div className="px-4 py-3 bg-gray-50 rounded-2xl mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${rolePermissions[currentUser.role_id]?.color || 'bg-gray-400'
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${rolePermissions[currentUser.role]?.color || 'bg-gray-400'
                         }`}>
-                        {currentUser.name?.charAt(0)?.toUpperCase() || 'U'}
+                        {(currentUser.full_name || currentUser.name)?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{currentUser.name}</div>
-                        <div className="text-xs text-gray-500">{rolePermissions[currentUser.role_id]?.name || 'User'}</div>
+                        <div className="text-sm font-medium text-gray-900">{currentUser.full_name || currentUser.name}</div>
+                        <div className="text-xs text-gray-500">{rolePermissions[currentUser.role]?.name || 'สมาชิก'}</div>
                       </div>
                     </div>
                   </div>
