@@ -62,7 +62,7 @@ export default function MasterComponentsTable({ items, onEdit, onDelete, onAdd }
                 </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-6">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>

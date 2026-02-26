@@ -111,12 +111,12 @@ export default function ResultsContent({ hasPermission, achievements }) {
   //       <div className="flex items-center justify-between mb-6">
   //         <h3 className="text-2xl font-bold text-gray-900">ผลการประเมิน</h3>
   //         {hasPermission && hasPermission('create_reports') && (
-  //           <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+  //           <button className="bg-green-600 text-white px-4 py-2 rounded-2xl text-sm hover:bg-green-700 transition-colors">
   //             สร้างรายงาน
   //           </button>
   //         )}
   //         <button
-  //           className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors"
+  //           className="bg-green-600 text-white px-4 py-2 rounded-2xl text-sm hover:bg-green-700 transition-colors"
   //           onClick={handleExportPDF}
   //         >
   //           ดาวน์โหลดรายงาน PDF
@@ -124,7 +124,7 @@ export default function ResultsContent({ hasPermission, achievements }) {
   //       </div>
   //       <div className="space-y-4">
   //         {achievements && achievements.map((achievement, index) => (
-  //           <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
+  //           <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-2xl border border-green-200">
   //             <div className="flex items-center space-x-4">
   //               <div className="bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold">
   //                 {achievement.year}
@@ -145,15 +145,15 @@ export default function ResultsContent({ hasPermission, achievements }) {
   //         <div className="text-gray-400">กำลังโหลด...</div>
   //       ) : (
   //         <div className="grid md:grid-cols-3 gap-6">
-  //           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+  //           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
   //             <div className="text-3xl font-bold text-blue-600 mb-2">{avgScore}</div>
   //             <div className="text-blue-800 font-medium">คะแนนเฉลี่ย</div>
   //           </div>
-  //           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+  //           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl">
   //             <div className="text-3xl font-bold text-green-600 mb-2">{passRate}%</div>
   //             <div className="text-green-800 font-medium">อัตราผ่านเกณฑ์</div>
   //           </div>
-  //           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+  //           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl">
   //             <div className="text-3xl font-bold text-purple-600 mb-2">{years.length}</div>
   //             <div className="text-purple-800 font-medium">จำนวนปีที่ผ่าน</div>
   //           </div>

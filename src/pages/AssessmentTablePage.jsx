@@ -125,7 +125,7 @@ export default function AssessmentTablePage({ setActiveTab }) {
             <p className="text-gray-700 mb-4">ยังไม่ได้เลือกสาขา</p>
             <button
               onClick={() => setActiveTab && setActiveTab('assessment')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              className="px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-medium transition-colors"
             >
               เลือกสาขา
             </button>
@@ -197,7 +197,7 @@ export default function AssessmentTablePage({ setActiveTab }) {
       </div>
 
       {/* ตารางรายการหลักฐานอ้างอิง (ไฟล์ที่อัปโหลดล่าสุด) */}
-      <div className="mb-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="mb-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-900">
           รายการหลักฐานอ้างอิง (ไฟล์ที่อัปโหลดล่าสุด)
         </div>
@@ -236,7 +236,7 @@ export default function AssessmentTablePage({ setActiveTab }) {
 
       {/* ตารางองค์ประกอบแบบอ่านอย่างเดียว */}
       {!selectedComponent && (
-        <div className="mb-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="mb-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-medium text-gray-900">เลือกองค์ประกอบคุณภาพเพื่อประเมิน</h3>
           </div>

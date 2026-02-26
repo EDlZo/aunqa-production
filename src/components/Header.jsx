@@ -81,7 +81,7 @@ export default function Header({
               <button
                 key={item.tab}
                 onClick={() => setActiveTab(item.tab)}
-                className={`px-3 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap transition-all duration-200 ${(item.active ? item.active : activeTab === item.tab)
+                className={`px-3 py-2 rounded-2xl text-[13px] font-bold whitespace-nowrap transition-all duration-200 ${(item.active ? item.active : activeTab === item.tab)
                   ? 'bg-blue-50 text-blue-700 border border-blue-200'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
@@ -97,7 +97,7 @@ export default function Header({
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 border border-transparent hover:border-gray-200 group"
+                  className="flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all duration-200 border border-transparent hover:border-gray-200 group"
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm transition-transform group-hover:scale-105 ${rolePermissions[currentUser.role_id]?.color || 'bg-gray-400'
                     }`}>
@@ -130,7 +130,7 @@ export default function Header({
                           }}
                           className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left font-medium border-b border-gray-50"
                         >
-                          <div className="p-1.5 bg-indigo-50 rounded-lg">
+                          <div className="p-1.5 bg-indigo-50 rounded-2xl">
                             <Shield className="w-4 h-4 text-indigo-600" />
                           </div>
                           <span>จัดการระบบ</span>
@@ -144,7 +144,7 @@ export default function Header({
                         }}
                         className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left font-medium"
                       >
-                        <div className="p-1.5 bg-red-100 rounded-lg">
+                        <div className="p-1.5 bg-red-100 rounded-2xl">
                           <LogOut className="w-4 h-4" />
                         </div>
                         <span>ออกจากระบบ</span>
@@ -156,7 +156,7 @@ export default function Header({
             ) : (
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
+                className="bg-blue-600 text-white px-4 py-2 rounded-2xl text-sm font-medium hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
               >
                 เข้าสู่ระบบ
               </button>
@@ -164,7 +164,7 @@ export default function Header({
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden p-2 rounded-2xl hover:bg-gray-100 transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -183,7 +183,7 @@ export default function Header({
                     setActiveTab(item.tab);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${(item.active ? item.active : activeTab === item.tab)
+                  className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-medium transition-colors ${(item.active ? item.active : activeTab === item.tab)
                     ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
@@ -194,7 +194,7 @@ export default function Header({
 
               {currentUser && (
                 <div className="border-t border-gray-200 mt-4 pt-4">
-                  <div className="px-4 py-3 bg-gray-50 rounded-lg mb-3">
+                  <div className="px-4 py-3 bg-gray-50 rounded-2xl mb-3">
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${rolePermissions[currentUser.role_id]?.color || 'bg-gray-400'
                         }`}>
@@ -211,7 +211,7 @@ export default function Header({
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>ออกจากระบบ</span>

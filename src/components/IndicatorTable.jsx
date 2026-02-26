@@ -569,7 +569,7 @@ export default function IndicatorTable({
             <button className={`${flash.type === 'success' ? 'text-green-700' : 'text-red-700'} float-right`} onClick={() => setFlash({ message: '', type: 'success' })}>×</button>
           </div>
         )}
-        <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-white border border-gray-200 rounded-2xl">
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <div className="text-sm text-gray-700 mb-2">{assessIndicator.sequence} : {assessIndicator.indicator_name}</div>
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -659,14 +659,14 @@ export default function IndicatorTable({
 
         {/* แสดงประวัติการประเมิน */}
         {evaluationHistory.length > 0 && (
-          <div className="mt-6 bg-white border border-gray-200 rounded-lg">
+          <div className="mt-6 bg-white border border-gray-200 rounded-2xl">
             <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
               <h4 className="text-sm font-medium text-gray-900">ประวัติการประเมิน ({evaluationHistory.length} ครั้ง)</h4>
             </div>
             <div className="p-4">
               <div className="space-y-4">
                 {evaluationHistory.map((evaluation, index) => (
-                  <div key={evaluation.evaluation_id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div key={evaluation.evaluation_id} className="border border-gray-200 rounded-2xl p-4 bg-gray-50">
                     <div className="flex justify-between items-start mb-3">
                       <span className="text-sm font-medium text-gray-900">
                         การประเมินครั้งที่ {evaluationHistory.length - index}
@@ -744,7 +744,7 @@ export default function IndicatorTable({
         </div>
       )}
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">

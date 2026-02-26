@@ -387,7 +387,7 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                         </button>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg  overflow-hidden">
+                    <div className="bg-gray-50 rounded-2xl  overflow-hidden">
                         {activeSubTab === 'components' ? (
                             <MasterComponentsTable
                                 items={allComponents}
@@ -461,21 +461,21 @@ export default function DatabaseManagementPage({ setActiveTab }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     {error && (
-                        <div className="col-span-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center mb-2">
+                        <div className="col-span-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center mb-2">
                             <AlertCircle className="w-5 h-5 mr-2" />
                             {error}
                         </div>
                     )}
 
                     {!loading && !error && stats.users === 0 && (
-                        <div className="col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg flex items-center mb-2">
+                        <div className="col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-2xl flex items-center mb-2">
                             <AlertCircle className="w-5 h-5 mr-2" />
                             คำแนะนำ: หากค่าที่แสดงเป็น 0 ทั้งหมด อาจเกิดจากเซิร์ฟเวอร์ยังไม่ได้ถูกรีสตาร์ทเพื่อเปิดใช้งาน API ใหม่
                         </div>
                     )}
 
                     {statCards.map(card => (
-                        <div key={card.id} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
+                        <div key={card.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
                             <div className="p-3 bg-gray-50 rounded-full text-gray-400 mr-4">
                                 {card.icon}
                             </div>
@@ -496,10 +496,10 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {collectionCards.map((card) => (
-                            <div key={card.id} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                            <div key={card.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
                                 <div className="p-6 flex-1">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className={`p-3 rounded-lg ${card.bg} ${card.color}`}>
+                                        <div className={`p-3 rounded-2xl ${card.bg} ${card.color}`}>
                                             {card.icon}
                                         </div>
                                         <div className="text-right">
@@ -539,7 +539,7 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                     </div>
                 </div>
 
-                <div className="bg-red-50 rounded-lg border border-red-200 p-8">
+                <div className="bg-red-50 rounded-2xl border border-red-200 p-8">
                     <div className="flex items-center gap-3 mb-4 text-red-700">
                         <ShieldAlert className="w-6 h-6" />
                         <h2 className="text-xl font-bold">พื้นที่อันตราย (Danger Zone)</h2>

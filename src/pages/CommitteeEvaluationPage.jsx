@@ -18,6 +18,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
   const [rows, setRows] = useState([]); // evaluations_actual
   const [criteriaMap, setCriteriaMap] = useState({}); // indicator_id -> { target_value, score }
   const [committeeMap, setCommitteeMap] = useState({}); // indicator_id -> { committee_score, strengths, improvements }
+  const [operationMap, setOperationMap] = useState({}); // indicator_id -> evaluation record
   const [allIndicatorsMap, setAllIndicatorsMap] = useState({}); // componentId -> indicators[]
   // ฟิลด์แก้ไขของหน้าแบบเต็ม (ต้องอยู่นอกการเรนเดอร์แบบมีเงื่อนไข เพื่อไม่ให้ผิดกติกา Hooks)
   const [editorScore, setEditorScore] = useState('');
@@ -118,15 +119,15 @@ export default function CommitteeEvaluationPage({ currentUser }) {
         components.forEach(comp => {
           const firestoreId = String(comp.id);
           const logicalId = String(comp.component_id);
-
-          if (!indMap[firestoreId] && indMap[logicalId]) {
-            indMap[firestoreId] = indMap[logicalId];
-          } else if (indMap[firestoreId] && !indMap[logicalId]) {
-            indMap[logicalId] = indMap[firestoreId];
-          }
+          if (!indMap[firestoreId] && indMap[logicalId]) indMap[firestoreId] = indMap[logicalId];
+          else if (!indMap[logicalId] && indMap[firestoreId]) indMap[logicalId] = indMap[firestoreId];
         });
-
         setAllIndicatorsMap(indMap);
+
+        // Map for evaluations_actual (latest record wins)
+        const opMap = {};
+        evaluations_actual.forEach(r => { opMap[String(r.indicator_id)] = r; });
+        setOperationMap(opMap);
 
         // Count main indicators per component (ID-agnostic)
         const countMap = {};
@@ -346,7 +347,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                           href={fileMeta.url || latest?.evidence_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs font-medium"
+                          className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-2xl hover:bg-green-200 transition-colors text-xs font-medium"
                         >
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -358,7 +359,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                           href={`${BASE_URL}/api/view/${encodeURIComponent(filename)}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs font-medium"
+                          className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-2xl hover:bg-blue-200 transition-colors text-xs font-medium"
                         >
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -448,8 +449,8 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       <Target className="w-4 h-4 text-blue-400" />
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-gray-900">{crit.target_value || '-'}</span>
-                      <span className="text-sm text-gray-500">(คะแนน {crit.score || '-'})</span>
+                      <span className="text-2xl font-bold text-gray-900">{crit.score || '-'}</span>
+                      <span className="text-sm text-gray-500">(เป้าหมาย: {crit.target_value || '-'})</span>
                     </div>
                   </div>
 
@@ -460,7 +461,6 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-green-600">{latest?.operation_score ?? '-'}</span>
-                      <span className="text-sm text-gray-500">(เกณฑ์ {latest?.reference_score ?? '-'})</span>
                     </div>
                   </div>
 
@@ -651,7 +651,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
           {viewComponent && (
             <button
               onClick={() => { setViewComponent(null); setViewIndicators([]); }}
-              className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors border border-gray-200"
+              className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-colors border border-gray-200"
             >
               กลับหน้าหลัก
             </button>
@@ -793,7 +793,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
         </>
       ) : (
         /* รายการตัวบ่งชี้ขององค์ประกอบที่เลือก */
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b bg-gray-50 flex items-center justify-between border-none">
             <div>
               <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">ตัวบ่งชี้ขององค์ประกอบ</div>
@@ -812,13 +812,12 @@ export default function CommitteeEvaluationPage({ currentUser }) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">ลำดับ</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">ลำดับ</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">ชื่อตัวบ่งชี้</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">เป้าหมาย</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">ประเมินตน</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">ดำเนินงาน</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">บรรลุ</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">เป้าหมาย</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">ประเมินตน</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">บรรลุ</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -864,17 +863,14 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               </div>
                             </td>
                             <td className="px-4 py-4 text-center text-sm border-r border-gray-200">
-                              {crit?.target_value || '-'}
-                            </td>
-                            <td className="px-4 py-4 text-center text-sm border-r border-gray-200">
                               {crit?.score || '-'}
                             </td>
-                            <td className="px-4 py-4 text-center text-sm border-r border-gray-200 font-medium">
+                            <td className="px-4 py-4 text-center text-sm border-r border-gray-200">
                               {actual ? `${actual.operation_score ?? '-'}` : '-'}
                             </td>
                             <td className="px-4 py-4 text-center text-sm border-r border-gray-200">
                               {actual && actual.goal_achievement ? (
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${actual.goal_achievement === 'บรรลุ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${actual.goal_achievement === 'บรรลุ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                   }`}>
                                   {actual.goal_achievement}
                                 </span>
@@ -884,7 +880,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               {['system_admin', 'external_evaluator'].includes(currentUser?.role) ? (
                                 <button
                                   onClick={() => setEvaluatingIndicator(ind)}
-                                  className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all ${hasCommitteeScore
+                                  className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all whitespace-nowrap ${hasCommitteeScore
                                     ? 'bg-green-600 text-white hover:bg-green-700'
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
@@ -895,7 +891,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               ) : (
                                 <button
                                   onClick={() => setEvaluatingIndicator(ind)}
-                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all"
+                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap"
                                 >
                                   <Search className="w-3.5 h-3.5 mr-1" />
                                   รายละเอียด
@@ -907,6 +903,58 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       })
                   )}
                 </tbody>
+                {viewIndicators.length > 0 && (
+                  <tfoot className="bg-gray-100 font-bold">
+                    <tr>
+                      <td className="px-4 py-4 border-r border-gray-200"></td>
+                      <td className="px-4 py-4 text-right text-sm text-gray-900 border-r border-gray-200">
+                        รวม {viewIndicators.filter(ind => !String(ind.sequence).includes('.') && rows.some(r =>
+                          String(r.indicator_id) === String(ind.id) ||
+                          String(r.indicator_id) === String(ind.indicator_id) ||
+                          String(r.indicator_id) === String(ind.sequence)
+                        )).length} ตัวบ่งชี้
+                      </td>
+                      <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                        {(() => {
+                          const validScores = viewIndicators.map(ind => {
+                            const crit = getIndicatorData(ind, criteriaMap);
+                            const val = parseFloat(crit.score || 0);
+                            return val > 0 ? val : NaN;
+                          }).filter(s => !isNaN(s));
+                          if (validScores.length === 0) return '-';
+                          const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                          return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                        })()}
+                      </td>
+                      <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                        {(() => {
+                          const validScores = viewIndicators.map(ind => {
+                            const actual = getIndicatorData(ind, operationMap);
+                            const val = parseFloat(actual?.operation_score || 0);
+                            return val > 0 ? val : NaN;
+                          }).filter(s => !isNaN(s));
+                          if (validScores.length === 0) return '-';
+                          const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                          return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                        })()}
+                      </td>
+                      <td className="px-4 py-4 border-r border-gray-200"></td>
+                      <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                        {(() => {
+                          const validScores = viewIndicators.map(ind => {
+                            const comm = getIndicatorData(ind, committeeMap);
+                            const val = parseFloat(comm?.committee_score || 0);
+                            return val > 0 ? val : NaN;
+                          }).filter(s => !isNaN(s));
+                          if (validScores.length === 0) return '-';
+                          const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                          return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                        })()}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>

@@ -122,7 +122,7 @@ export default function ReportSection() {
     const isImage = selectedFile.type.startsWith('image/');
 
     return (
-      <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+      <div className="mt-2 p-3 bg-blue-50 rounded-2xl border border-blue-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <FileText className="w-5 h-5 text-blue-600" />
@@ -282,7 +282,7 @@ export default function ReportSection() {
 //           </div>
 //           <button
 //             type="submit"
-//             className="bg-purple-700 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-800 transition"
+//             className="bg-purple-700 text-white px-6 py-2 rounded-2xl font-bold hover:bg-purple-800 transition"
 //             disabled={loading}
 //           >
 //             {loading ? 'กำลังบันทึก...' : 'บันทึกผลประเมิน'}

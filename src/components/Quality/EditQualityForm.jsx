@@ -38,7 +38,7 @@ export default function EditQualityForm({ item, onSave, onCancel }) {
         ${isVisible ? 'opacity-100' : 'opacity-0'}`}
     >
       <div
-        className={`bg-white p-6 rounded-lg shadow-lg w-96 transform transition-transform duration-200
+        className={`bg-white p-6 rounded-2xl shadow-lg w-96 transform transition-transform duration-200
           ${isVisible ? 'scale-100' : 'scale-95'}`}
       >
         <h2 className="text-lg font-bold mb-4 text-center">แก้ไข้อค์ประกอบ</h2>

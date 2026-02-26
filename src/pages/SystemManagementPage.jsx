@@ -46,7 +46,7 @@ export default function SystemManagementPage({ setActiveTab }) {
             <div className="flex-1 container mx-auto px-4 py-8" style={{ backgroundColor: 'gray-50' }}>
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-100 rounded-lg">
+                        <div className="p-2 bg-blue-100 rounded-2xl">
                             <Shield className="w-6 h-6 text-blue-600" />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">จัดการระบบ (System Management)</h1>

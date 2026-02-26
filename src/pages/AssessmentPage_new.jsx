@@ -60,7 +60,7 @@ export default function AssessmentPage() {
       {selectedProgram && showComponents && (
         <div className="space-y-6">
           {/* ข้อมูลสาขาที่เลือก */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-2xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -98,7 +98,7 @@ export default function AssessmentPage() {
 
       {/* คำแนะนำ */}
       {!selectedProgram && (
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
           <h3 className="text-lg font-medium text-blue-900 mb-2">วิธีการใช้งาน</h3>
           <ol className="list-decimal list-inside space-y-2 text-blue-800">
             <li>เลือกระดับ → ระดับหลักสูตร</li>

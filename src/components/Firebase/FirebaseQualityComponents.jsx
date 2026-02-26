@@ -117,7 +117,7 @@ const FirebaseQualityComponents = ({ majorName, sessionId }) => {
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <h3 className="text-lg font-semibold mb-4">
             {editingComponent ? 'แก้ไของค์ประกอบ' : 'เพิ่มองค์ประกอบใหม่'}
           </h3>
@@ -170,7 +170,7 @@ const FirebaseQualityComponents = ({ majorName, sessionId }) => {
       )}
 
       {/* Components List */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         {components.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <p>ยังไม่มีองค์ประกอบคุณภาพ</p>

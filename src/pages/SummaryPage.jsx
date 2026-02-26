@@ -20,6 +20,7 @@ export default function SummaryPage({ currentUser }) {
   const [detailEvaluation, setDetailEvaluation] = useState(null);
   const [criteriaMap, setCriteriaMap] = useState({}); // indicator_id -> { target_value, score }
   const [committeeMap, setCommitteeMap] = useState({}); // indicator_id -> { committee_score, strengths, improvements }
+  const [operationMap, setOperationMap] = useState({}); // indicator_id -> evaluation record
   const [allIndicatorsMap, setAllIndicatorsMap] = useState({}); // componentId -> indicators[]
 
   useEffect(() => {
@@ -137,6 +138,11 @@ export default function SummaryPage({ currentUser }) {
             else if (!allIndsMap[logId] && allIndsMap[fireId]) allIndsMap[logId] = allIndsMap[fireId];
           });
           setAllIndicatorsMap(allIndsMap);
+
+          // Map for evaluations_actual (latest record wins)
+          const opMap = {};
+          evaluations_actual.forEach(r => { opMap[String(r.indicator_id)] = r; });
+          setOperationMap(opMap);
 
           // Count main indicators per component (ID-agnostic)
           const countMap = {};
@@ -319,7 +325,7 @@ export default function SummaryPage({ currentUser }) {
             {/* Section: ผลการดำเนินงาน (เนื้อหาข้อความ) */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
               <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-2xl flex items-center justify-center">
                   <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -514,7 +520,7 @@ export default function SummaryPage({ currentUser }) {
                                       href={fileMeta.url || detailEvaluation?.evidence_url}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs font-medium"
+                                      className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-2xl hover:bg-green-200 transition-colors text-xs font-medium"
                                     >
                                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -526,7 +532,7 @@ export default function SummaryPage({ currentUser }) {
                                       href={`${BASE_URL}/api/view/${encodeURIComponent(filename)}`}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs font-medium"
+                                      className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-2xl hover:bg-blue-200 transition-colors text-xs font-medium"
                                     >
                                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -573,7 +579,7 @@ export default function SummaryPage({ currentUser }) {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 text-base"
+                className="block w-full px-4 py-3 rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 text-base"
               >
                 {rounds.map(r => (
                   <option key={r.id} value={r.year}>
@@ -724,7 +730,7 @@ export default function SummaryPage({ currentUser }) {
 
       {/* Indicators Table */}
       {viewComponent && (
-        <div className="bg-white rounded-lg shadow-md">
+        <div className="bg-white rounded-2xl shadow-md">
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
@@ -749,25 +755,25 @@ export default function SummaryPage({ currentUser }) {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">
                     ลำดับ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
                     ตัวบ่งชี้
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                    เป้าหมาย
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">
+                    ค่าเป้าหมาย
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">
                     ประเมินตน
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                    ดำเนินงาน
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">
                     บรรลุ
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 whitespace-nowrap">
+                    ประเมินกรรมการ
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                     รายละเอียด
                   </th>
                 </tr>
@@ -806,21 +812,21 @@ export default function SummaryPage({ currentUser }) {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
-                          {crit.target_value || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                           {crit.score || '-'}
                         </td>
-                        <td className="px-6 py-4 text-center text-sm border-r border-gray-200 font-medium">
+                        <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                           {latest ? `${latest.operation_score ?? '-'}` : '-'}
                         </td>
                         <td className="px-6 py-4 text-center text-sm border-r border-gray-200">
                           {latest && latest.goal_achievement ? (
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${latest.goal_achievement === 'บรรลุ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${latest.goal_achievement === 'บรรลุ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                               }`}>
                               {latest.goal_achievement}
                             </span>
                           ) : '-'}
+                        </td>
+                        <td className="px-6 py-4 text-center text-sm border-r border-gray-200 font-medium">
+                          {committee.committee_score || '-'}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <button
@@ -835,6 +841,54 @@ export default function SummaryPage({ currentUser }) {
                   })
                 )}
               </tbody>
+              {viewIndicators.length > 0 && (
+                <tfoot className="bg-gray-100 font-bold">
+                  <tr>
+                    <td className="px-6 py-4 border-r border-gray-200"></td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-900 border-r border-gray-200">
+                      รวม {viewIndicators.filter(ind => !String(ind.sequence).includes('.')).length} ตัวบ่งชี้
+                    </td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                      {(() => {
+                        const validScores = viewIndicators.map(ind => {
+                          const crit = getIndicatorData(ind, criteriaMap);
+                          const val = parseFloat(crit.score || 0);
+                          return val > 0 ? val : NaN;
+                        }).filter(s => !isNaN(s));
+                        if (validScores.length === 0) return '-';
+                        const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                        return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                      })()}
+                    </td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                      {(() => {
+                        const validScores = viewIndicators.map(ind => {
+                          const latest = getIndicatorData(ind, operationMap);
+                          const val = parseFloat(latest?.operation_score || 0);
+                          return val > 0 ? val : NaN;
+                        }).filter(s => !isNaN(s));
+                        if (validScores.length === 0) return '-';
+                        const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                        return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                      })()}
+                    </td>
+                    <td className="px-6 py-4 border-r border-gray-200"></td>
+                    <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
+                      {(() => {
+                        const validScores = viewIndicators.map(ind => {
+                          const committee = getIndicatorData(ind, committeeMap);
+                          const val = parseFloat(committee.committee_score || 0);
+                          return val > 0 ? val : NaN;
+                        }).filter(s => !isNaN(s));
+                        if (validScores.length === 0) return '-';
+                        const avg = validScores.reduce((a, b) => a + b, 0) / validScores.length;
+                        return Number.isInteger(avg) ? avg : avg.toFixed(2);
+                      })()}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </div>

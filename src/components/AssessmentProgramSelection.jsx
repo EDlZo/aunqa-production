@@ -57,12 +57,12 @@ export default function AssessmentProgramSelection({ onProgramSelect }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-2xl shadow-md p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">เลือกสาขาที่ต้องการประเมิน</h2>
 
       {/* แสดงผลการเลือก */}
       {selectedProgram && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-green-900">สาขาที่เลือก</h3>
@@ -89,7 +89,7 @@ export default function AssessmentProgramSelection({ onProgramSelect }) {
             <button
               key={program.id}
               onClick={() => handleSelectProgram(program)}
-              className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              className="w-full text-left p-4 border border-gray-200 rounded-2xl hover:border-blue-300 hover:bg-blue-50 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -103,7 +103,7 @@ export default function AssessmentProgramSelection({ onProgramSelect }) {
       )}
 
       {/* คำอธิบาย */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+      <div className="mt-6 p-4 bg-gray-50 rounded-2xl">
         <p className="text-sm text-gray-600">
           💡 <strong>หมายเหตุ:</strong> หลังจากเลือกสาขาแล้ว ระบบจะแสดงส่วนการเริ่มประเมินผลด้านล่าง
         </p>

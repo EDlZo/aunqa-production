@@ -81,7 +81,7 @@ export default function ConnectionStatus() {
   if (status === 'online') return null;
 
   return (
-    <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium ${statusInfo.color}`}>
+    <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-2xl border text-sm font-medium ${statusInfo.color}`}>
       {statusInfo.icon}
       <span>{statusInfo.text}</span>
       {lastCheck && (

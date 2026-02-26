@@ -31,8 +31,10 @@ export default function ReportsPage() {
     swot: { s: '', w: '', o: '', t: '' }
   });
   const [components, setComponents] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
+  const [evaluations, setEvaluations] = useState([]); // evaluations_actual
   const [indicators, setIndicators] = useState([]);
+  const [criteria, setCriteria] = useState([]);
+  const [committeeEvaluations, setCommitteeEvaluations] = useState([]);
   const [stats, setStats] = useState({ avg: 0, completed: 0, total: 0 });
 
   const [selectedProgram, setSelectedProgram] = useState(() => {
@@ -87,14 +89,13 @@ export default function ReportsPage() {
     try {
       const qs = new URLSearchParams({
         year: selectedYear,
-        major_name: majorName
+        major_name: majorName,
+        filter_approved_only: 'true'
       }).toString();
 
-      const [metaRes, compRes, evalRes, indRes] = await Promise.all([
+      const [metaRes, bulkRes] = await Promise.all([
         fetch(`/api/esar-metadata?${qs}`),
-        fetch(`/api/quality-components?${qs}`),
-        fetch(`/api/evaluations-actual/history?${qs}`), // Fetch all, including non-approved
-        fetch(`/api/indicators?${qs}`)
+        fetch(`/api/bulk/session-summary?${qs}`)
       ]);
 
       if (metaRes.ok) {
@@ -107,26 +108,17 @@ export default function ReportsPage() {
             structure: meta.structure || '',
             swot: meta.swot || { s: '', w: '', o: '', t: '' }
           });
-        } else {
-          // Reset if no data found for this year
-          setEsarData({
-            history: '',
-            vision: '',
-            mission: '',
-            structure: '',
-            swot: { s: '', w: '', o: '', t: '' }
-          });
         }
       }
 
-      if (compRes.ok) {
-        const comps = await compRes.json();
-        // Filter only AUN 1-8 for ESAR view usually, but let's keep all
-        setComponents(comps);
+      if (bulkRes.ok) {
+        const data = await bulkRes.json();
+        setComponents(data.components || []);
+        setEvaluations(data.evaluations_actual || []); // Self-Assessment
+        setIndicators(data.indicators || []);
+        setCriteria(data.evaluations || []); // Target definitions
+        setCommitteeEvaluations(data.committee_evaluations || []);
       }
-
-      if (evalRes.ok) setEvaluations(await evalRes.json());
-      if (indRes.ok) setIndicators(await indRes.json());
 
     } catch (error) {
       console.error('Error fetching ESAR data:', error);
@@ -137,10 +129,32 @@ export default function ReportsPage() {
 
   // Calculate Stats
   useEffect(() => {
-    if (evaluations.length > 0 && indicators.length > 0) {
-      const getScore = (e) => parseFloat(e.score || e.operation_score || 0);
-      const scoredEvals = evaluations.filter(e => getScore(e) > 0);
-      const avg = scoredEvals.length > 0 ? (scoredEvals.reduce((a, b) => a + getScore(b), 0) / scoredEvals.length) : 0;
+    if (indicators.length > 0) {
+      // Map preparation (Latest record wins)
+      const selfMap = {};
+      evaluations.forEach(r => { selfMap[String(r.indicator_id)] = r; });
+      const targetMap = {};
+      criteria.forEach(r => { targetMap[String(r.indicator_id)] = r; });
+      const commMap = {};
+      committeeEvaluations.forEach(r => { commMap[String(r.indicator_id)] = r; });
+
+      const getVal = (ind, dataMap, key) => {
+        const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
+        return parseFloat(item?.[key] || item?.['score'] || 0);
+      };
+
+      const getAvg = (list, dataMap, scoreKey) => {
+        const valid = list.map(ind => {
+          const val = getVal(ind, dataMap, scoreKey);
+          return val > 0 ? val : NaN;
+        }).filter(s => !isNaN(s));
+        return valid.length > 0 ? (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(2) : '0.00';
+      };
+
+      const selfAvg = getAvg(indicators, selfMap, 'operation_score');
+      const targetAvg = getAvg(indicators, targetMap, 'score');
+      const commAvg = getAvg(indicators, commMap, 'committee_score');
+
       const completedIds = new Set(evaluations.map(e => String(e.indicator_id)));
       const matchCount = indicators.filter(ind =>
         completedIds.has(String(ind.id)) ||
@@ -149,14 +163,16 @@ export default function ReportsPage() {
       ).length;
 
       setStats({
-        avg: avg.toFixed(2),
+        avg: selfAvg,
+        targetAvg,
+        commAvg,
         completed: matchCount,
         total: indicators.length
       });
     } else {
-      setStats({ avg: 0, completed: 0, total: helpers_countIndicators() });
+      setStats({ avg: '0.00', targetAvg: '0.00', commAvg: '0.00', completed: 0, total: indicators.length });
     }
-  }, [evaluations, indicators]);
+  }, [evaluations, indicators, criteria, committeeEvaluations]);
 
   const helpers_countIndicators = () => indicators.length;
 
@@ -194,6 +210,8 @@ export default function ReportsPage() {
         components,
         indicators,
         evaluations,
+        criteria,
+        committeeEvaluations,
         metadata: esarData // Pass metadata to generator
       });
 
@@ -212,32 +230,32 @@ export default function ReportsPage() {
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-gray-500 text-sm">คะแนนเฉลี่ยรวม</p>
-            <p className="text-3xl font-bold text-blue-600">{stats.avg}</p>
-          </div>
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-            <TrendingUp size={24} />
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">เป้าหมาย (เฉลี่ย)</p>
+            <p className="text-2xl font-black text-blue-500">{stats.targetAvg}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-gray-500 text-sm">ประเมินแล้ว</p>
-            <p className="text-3xl font-bold text-green-600">{stats.completed} <span className="text-sm text-gray-400 font-normal">/ {stats.total}</span></p>
-          </div>
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-            <CheckCircle size={24} />
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">ประเมินตน (เฉลี่ย)</p>
+            <p className="text-2xl font-black text-blue-600">{stats.avg}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-gray-500 text-sm">รอการประเมิน</p>
-            <p className="text-3xl font-bold text-orange-600">{Math.max(0, stats.total - stats.completed)}</p>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">กรรมการ (เฉลี่ย)</p>
+            <p className="text-2xl font-black text-indigo-600">{stats.commAvg}</p>
           </div>
-          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
-            <RefreshCw size={24} />
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between border-l-4 border-l-green-500">
+          <div>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">ความก้าวหน้า</p>
+            <p className="text-2xl font-black text-green-600">{stats.completed} <span className="text-sm text-gray-400 font-normal">/ {stats.total}</span></p>
           </div>
         </div>
       </div>
@@ -254,7 +272,7 @@ export default function ReportsPage() {
                 localStorage.removeItem('selectedProgramContext');
                 setSelectedProgram(null);
               }}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-2xl text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
             >
               <RefreshCw size={14} />
               เปลี่ยนสาขา
@@ -267,8 +285,9 @@ export default function ReportsPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมวด</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนตัวบ่งชี้</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ประเมินแล้ว</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">คะแนนเฉลี่ย</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">เป้าหมาย</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ประเมินตน</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">กรรมการ</th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
               </tr>
             </thead>
@@ -294,9 +313,26 @@ export default function ReportsPage() {
                   )
                 ).length;
 
-                const score = compEvals.length > 0
-                  ? (compEvals.reduce((a, b) => a + parseFloat(b.score || b.operation_score || 0), 0) / compEvals.length).toFixed(2)
-                  : '-';
+                // Maps for component (inherit from above if needed, or build locally for clarity)
+                const cSelfMap = {};
+                evaluations.forEach(r => { cSelfMap[String(r.indicator_id)] = r; });
+                const cTargetMap = {};
+                criteria.forEach(r => { cTargetMap[String(r.indicator_id)] = r; });
+                const cCommMap = {};
+                committeeEvaluations.forEach(r => { cCommMap[String(r.indicator_id)] = r; });
+
+                const getCompAvg = (dataMap, key) => {
+                  const valid = compIndicators.map(ind => {
+                    const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
+                    const val = parseFloat(item?.[key] || item?.['score'] || 0);
+                    return val > 0 ? val : NaN;
+                  }).filter(s => !isNaN(s));
+                  return valid.length > 0 ? (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(2) : '-';
+                };
+
+                const selfScore = getCompAvg(cSelfMap, 'operation_score');
+                const targetScore = getCompAvg(cTargetMap, 'score');
+                const commScore = getCompAvg(cCommMap, 'committee_score');
 
                 return (
                   <tr key={comp.id} className="hover:bg-gray-50">
@@ -304,8 +340,9 @@ export default function ReportsPage() {
                       {comp.quality_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{compIndicators.length}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{completedInComp}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-600">{score}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-500">{targetScore}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-600">{selfScore}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-indigo-600">{commScore}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       {completedInComp > 0 && completedInComp === compIndicators.length ? (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -401,7 +438,7 @@ export default function ReportsPage() {
         <label className="block text-sm font-medium text-gray-700 mb-2">ประวัติความเป็นมา (History)</label>
         <textarea
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
           value={esarData.history}
           onChange={e => setEsarData({ ...esarData, history: e.target.value })}
           placeholder="ระบุประวัติความเป็นมาของหลักสูตร/คณะ..."
@@ -413,7 +450,7 @@ export default function ReportsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">วิสัยทัศน์ (Vision)</label>
           <textarea
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
             value={esarData.vision}
             onChange={e => setEsarData({ ...esarData, vision: e.target.value })}
             placeholder="ระบุวิสัยทัศน์..."
@@ -423,7 +460,7 @@ export default function ReportsPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">พันธกิจ (Mission)</label>
           <textarea
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
             value={esarData.mission}
             onChange={e => setEsarData({ ...esarData, mission: e.target.value })}
             placeholder="ระบุพันธกิจ..."
@@ -435,7 +472,7 @@ export default function ReportsPage() {
         <label className="block text-sm font-medium text-gray-700 mb-2">โครงสร้างการบริหาร (Organization Structure)</label>
         <textarea
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
           value={esarData.structure}
           onChange={e => setEsarData({ ...esarData, structure: e.target.value })}
           placeholder="อธิบายโครงสร้างการบริหาร..."
@@ -445,7 +482,7 @@ export default function ReportsPage() {
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSaveMetadata}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition"
           disabled={refreshing}
         >
           <Save className="w-4 h-4 mr-2" />
@@ -466,7 +503,7 @@ export default function ReportsPage() {
           </label>
           <textarea
             rows={10}
-            className="w-full px-3 py-2 bg-white border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+            className="w-full px-3 py-2 bg-white border border-green-200 rounded-2xl focus:ring-2 focus:ring-green-500 outline-none"
             value={esarData.swot.s}
             onChange={e => setEsarData({ ...esarData, swot: { ...esarData.swot, s: e.target.value } })}
             placeholder="ระบุจุดแข็งของหลักสูตร..."
@@ -479,7 +516,7 @@ export default function ReportsPage() {
           </label>
           <textarea
             rows={10}
-            className="w-full px-3 py-2 bg-white border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+            className="w-full px-3 py-2 bg-white border border-red-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none"
             value={esarData.swot.w}
             onChange={e => setEsarData({ ...esarData, swot: { ...esarData.swot, w: e.target.value } })}
             placeholder="ระบุจุดที่ควรปรับปรุง..."
@@ -490,7 +527,7 @@ export default function ReportsPage() {
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSaveMetadata}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition"
           disabled={refreshing}
         >
           <Save className="w-4 h-4 mr-2" />
@@ -563,7 +600,7 @@ export default function ReportsPage() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm"
+            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm"
           >
             {rounds.map(r => (
               <option key={r.id} value={r.year}>{r.name} {r.is_active ? '(Active)' : ''}</option>

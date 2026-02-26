@@ -548,14 +548,14 @@ export default function DefineComponentSection({ forcedMajor, forcedYear }) {
 
   // หน้าแสดงตารางหลัก
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
 
       </div>
 
       <div className="text-center mb-8">
         {activeRound && (
-          <div className="px-4 py-3 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold mb-4 border border-blue-200 inline-flex items-center">
+          <div className="px-4 py-3 bg-blue-50 text-blue-700 rounded-2xl text-sm font-semibold mb-4 border border-blue-200 inline-flex items-center">
             <span className="mr-2">📅</span> กำลังแก้ไขเกณฑ์สำหรับ: {activeRound.name} (ปี {activeRound.year})
           </div>
         )}
@@ -567,7 +567,7 @@ export default function DefineComponentSection({ forcedMajor, forcedYear }) {
         <h3 className="text-xl font-semibold text-gray-900">ส่วนที่ 1 องค์ประกอบคุณภาพ ระดับหลักสูตร</h3>
         <button
           onClick={openAddForm}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors shadow-sm"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-2xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -576,7 +576,7 @@ export default function DefineComponentSection({ forcedMajor, forcedYear }) {
         </button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <QualityComponentsTable
           items={items}
           loading={loading}

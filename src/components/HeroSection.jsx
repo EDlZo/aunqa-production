@@ -60,7 +60,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={onGoResults}
-                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 <FileText className="w-5 h-5 mr-2" />
                 ดูผลการประเมิน
@@ -68,7 +68,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
               </button>
               <button
                 onClick={onGoProcess}
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-medium rounded-2xl border border-gray-300 hover:bg-gray-50 transition-all duration-200"
               >
                 <ChevronRight className="w-5 h-5 mr-2" />
                 แนวทางและขั้นตอน
@@ -79,7 +79,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center group">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-lg mb-3 group-hover:bg-blue-200 transition-colors">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl mb-3 group-hover:bg-blue-200 transition-colors">
                     {stat.icon}
                   </div>
                   <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
@@ -102,7 +102,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
 
                 <div className="space-y-3">
                   {displayComponents.map((comp, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
                       <span className="text-sm text-gray-600 truncate max-w-[150px]" title={comp.name}>{comp.name}</span>
                       <div className="flex items-center">
                         <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">

@@ -275,7 +275,7 @@ export default function AssessmentPage({ assessmentMode = 'evaluation', currentU
         <>
           {/* การเลือกองค์ประกอบ - แสดงเป็นตารางแบบเดียวกับหน้าจัดการ */}
           {components.length > 0 && !selectedComponent && (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900">เลือกองค์ประกอบคุณภาพเพื่อจัดการ</h3>
               </div>
@@ -321,7 +321,7 @@ export default function AssessmentPage({ assessmentMode = 'evaluation', currentU
           )}
 
           {components.length === 0 && !loading && (
-            <div className="bg-white p-12 rounded-lg border-2 border-dashed border-gray-200 text-center">
+            <div className="bg-white p-12 rounded-2xl border-2 border-dashed border-gray-200 text-center">
               <ClipboardList className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900">ยังไม่มีข้อมูลองค์ประกอบคุณภาพ</h3>
               <p className="text-gray-500 mt-2">กรุณาเพิ่มองค์ประกอบในหน้า "จัดการองค์ประกอบ" ก่อนทำรายการ</p>
@@ -344,7 +344,7 @@ export default function AssessmentPage({ assessmentMode = 'evaluation', currentU
 
           {/* Fallback if indicators not found for component */}
           {selectedComponent && !indicators[selectedComponent.component_id] && (
-            <div className="bg-white p-8 rounded-lg border border-gray-200 text-center">
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 text-center">
               <p className="text-gray-500 mb-4">ไม่พบข้อมูลตัวบ่งชี้สำหรับองค์ประกอบนี้</p>
               <button
                 onClick={() => setSelectedComponent(null)}

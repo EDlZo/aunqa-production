@@ -192,7 +192,7 @@ export default function UserManagementPage({ setActiveTab }) {
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700 transition"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-2xl flex items-center hover:bg-blue-700 transition"
                 >
                     <Plus className="w-5 h-5 mr-1" />
                     เพิ่มผู้ใช้งาน
@@ -214,7 +214,7 @@ export default function UserManagementPage({ setActiveTab }) {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-2xl shadow overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>

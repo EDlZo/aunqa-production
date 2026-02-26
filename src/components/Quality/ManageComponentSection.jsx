@@ -65,7 +65,7 @@ export default function ManageComponentSection() {
         <h1 className="text-2xl font-bold">จัดการองค์ประกอบ</h1>
         <p className="text-sm text-gray-600">กำหนดค่าเป้าหมายและน้ำหนักขององค์ประกอบคุณภาพ</p>
       </div>
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-2xl shadow p-6">
         {loading ? (
           <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
         ) : error ? (

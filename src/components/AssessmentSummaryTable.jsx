@@ -3,7 +3,7 @@ import React from 'react';
 export default function AssessmentSummaryTable({ data }) {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+      <table className="min-w-full divide-y divide-gray-200 bg-white rounded-2xl shadow">
         <thead className="bg-gray-100">
           <tr>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ลำดับ</th>

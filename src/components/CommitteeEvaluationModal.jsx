@@ -87,7 +87,7 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -111,7 +111,7 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
         {/* Content */}
         <div className="px-6 py-4 space-y-6">
           {/* คะแนนประเมิน (กรรมการ) */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               คะแนนประเมิน (กรรมการ)
             </label>
@@ -157,7 +157,7 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
 
           {/* ข้อมูลเพิ่มเติม */}
           {existingEvaluation && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
               <h4 className="text-sm font-medium text-blue-900 mb-2">ข้อมูลการประเมินเดิม</h4>
               <div className="text-xs text-blue-700">
                 <p>บันทึกล่าสุด: {new Date(existingEvaluation.created_at).toLocaleString('th-TH')}</p>

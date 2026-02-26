@@ -158,7 +158,7 @@ export default function AddQualityForm({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
           <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,7 +193,7 @@ export default function AddQualityForm({
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4">
           <p className="text-red-700">{error}</p>
         </div>
       )}

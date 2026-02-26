@@ -18,9 +18,11 @@ export class ESARGenerator {
 
         this.program = options.program || {};
         this.year = options.year || '';
-        this.evaluations = options.evaluations || [];
+        this.evaluations = options.evaluations || []; // evaluations_actual (Self-Assessment)
         this.indicators = options.indicators || [];
         this.components = options.components || [];
+        this.criteria = options.criteria || [];
+        this.committeeEvaluations = options.committeeEvaluations || [];
         this.metadata = options.metadata || {};
 
         this.imageDimensions = new Map();
@@ -368,52 +370,192 @@ export class ESARGenerator {
         this.addTitle('สรุปคะแนนประเมินตนเองตามเกณฑ์ AUN-QA', 16);
         this.currentY += 5;
         const tableData = [];
-        let avgTotal = 0, countTotal = 0;
+        let totalTarget = 0, totalSelf = 0, totalComm = 0;
+        let countTarget = 0, countSelf = 0, countComm = 0;
+
+        // Map preparation (Latest record wins)
+        const selfMap = {};
+        this.evaluations.forEach(r => { selfMap[String(r.indicator_id)] = r; });
+        const targetMap = {};
+        this.criteria.forEach(r => { targetMap[String(r.indicator_id)] = r; });
+        const commMap = {};
+        this.committeeEvaluations.forEach(r => { commMap[String(r.indicator_id)] = r; });
+
+        const getVal = (ind, dataMap, key) => {
+            const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
+            return parseFloat(item?.[key] || item?.['score'] || 0);
+        };
+
+        const getAvgScore = (list, dataMap, scoreKey) => {
+            const valid = list.map(ind => {
+                const val = getVal(ind, dataMap, scoreKey);
+                return val > 0 ? val : NaN;
+            }).filter(s => !isNaN(s));
+            return valid.length > 0 ? (valid.reduce((a, b) => a + b, 0) / valid.length) : null;
+        };
+
         this.components.forEach((component, idx) => {
-            const compIndicators = this.indicators.filter(ind => String(ind.quality_id) === String(component.id) || String(ind.component_id) === String(component.id) || String(ind.component_id) === String(component.component_id));
-            let compAvg = 0, compCount = 0;
-            compIndicators.forEach(ind => {
-                const evalData = this.evaluations.find(e => String(e.indicator_id) === String(ind.id) || String(e.indicator_id) === String(ind.indicator_id) || String(e.indicator_id) === String(ind.sequence));
-                if (evalData && (evalData.operation_score || evalData.score)) { compAvg += parseFloat(evalData.operation_score || evalData.score); compCount++; }
-            });
-            const score = compCount > 0 ? (compAvg / compCount).toFixed(2) : '-';
-            tableData.push([idx + 1, component.quality_name, score]);
-            if (compCount > 0) { avgTotal += parseFloat(score); countTotal++; }
+            const compIndicators = this.indicators.filter(ind =>
+                String(ind.component_id) === String(component.id) ||
+                String(ind.component_id) === String(component.component_id)
+            );
+
+            const targetScore = getAvgScore(compIndicators, targetMap, 'score');
+            const selfScore = getAvgScore(compIndicators, selfMap, 'operation_score');
+            const commScore = getAvgScore(compIndicators, commMap, 'committee_score');
+
+            tableData.push([
+                idx + 1,
+                component.quality_name,
+                targetScore !== null ? targetScore.toFixed(2) : '-',
+                selfScore !== null ? selfScore.toFixed(2) : '-',
+                commScore !== null ? commScore.toFixed(2) : '-'
+            ]);
+
+            if (targetScore !== null) { totalTarget += targetScore; countTarget++; }
+            if (selfScore !== null) { totalSelf += selfScore; countSelf++; }
+            if (commScore !== null) { totalComm += commScore; countComm++; }
         });
+
+        // Add Footer Row to table data
+        const footerRow = [
+            '',
+            'คะแนนเฉลี่ยรวมทุกเกณฑ์',
+            countTarget > 0 ? (totalTarget / countTarget).toFixed(2) : '-',
+            countSelf > 0 ? (totalSelf / countSelf).toFixed(2) : '-',
+            countComm > 0 ? (totalComm / countComm).toFixed(2) : '-'
+        ];
+        tableData.push(footerRow);
+
         autoTable(this.doc, {
-            head: [['ลำดับ', 'หัวข้อเกณฑ์ AUN-QA', 'คะแนนประเมิน']], body: tableData, startY: this.currentY, theme: 'grid',
-            styles: { font: this.fontFamily, fontSize: 11, cellPadding: 2, fontStyle: 'normal' },
-            headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal' },
-            columnStyles: { 0: { halign: 'center', cellWidth: 15 }, 2: { halign: 'center', cellWidth: 30 } },
+            head: [['ลำดับ', 'หัวข้อเกณฑ์ AUN-QA', 'เป้าหมาย', 'ประเมินตน', 'กรรมการ']],
+            body: tableData,
+            startY: this.currentY,
+            theme: 'grid',
+            styles: { font: this.fontFamily, fontSize: 10, cellPadding: 2, fontStyle: 'normal' },
+            headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal', cellPadding: 1.5 },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 15 },
+                2: { halign: 'center', cellWidth: 20 },
+                3: { halign: 'center', cellWidth: 20 },
+                4: { halign: 'center', cellWidth: 20 }
+            },
+            didParseCell: (data) => {
+                if (data.row.index === tableData.length - 1) {
+                    data.cell.styles.font = this.fontFamily;
+                    data.cell.styles.fontStyle = 'normal'; // ป้องกันเพี้ยน
+                    data.cell.styles.fillColor = [243, 244, 246]; // bg-gray-100
+                }
+            },
             rowPageBreak: 'avoid'
         });
         this.currentY = this.doc.lastAutoTable.finalY + 10;
-        if (countTotal > 0) this.addText(`คะแนนเฉลี่ยรวมทุกเกณฑ์: ${(avgTotal / countTotal).toFixed(2)}`, 14, 'bold', 'right');
     }
 
     renderComponentSection(component) {
         this.addTitle(`องค์ประกอบที่ ${component.quality_code || ''} ${component.quality_name}`, 15);
         this.currentY += 5;
-        const compIndicators = this.indicators.filter(ind => String(ind.quality_id) === String(component.id) || String(ind.component_id) === String(component.id) || String(ind.component_id) === String(component.component_id));
+
+        const compIndicators = this.indicators.filter(ind =>
+            String(ind.component_id) === String(component.id) ||
+            String(ind.component_id) === String(component.component_id)
+        );
+
         if (compIndicators.length === 0) { this.addText('ไม่พบข้อมูลตัวบ่งชี้ในหมวดนี้', 12, 'italic'); return; }
+
+        // Map preparation (Latest record wins)
+        const selfMap = {};
+        this.evaluations.forEach(r => { selfMap[String(r.indicator_id)] = r; });
+        const targetMap = {};
+        this.criteria.forEach(r => { targetMap[String(r.indicator_id)] = r; });
+        const commMap = {};
+        this.committeeEvaluations.forEach(r => { commMap[String(r.indicator_id)] = r; });
+
+        const getVal = (ind, dataMap, key) => {
+            const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
+            return parseFloat(item?.[key] || item?.['score'] || 0);
+        };
+
         compIndicators.sort((a, b) => {
             const seqA = String(a.sequence || '').split('.').map(Number);
             const seqB = String(b.sequence || '').split('.').map(Number);
-            for (let i = 0; i < Math.max(seqA.length, seqB.length); i++) { if ((seqA[i] || 0) < (seqB[i] || 0)) return -1; if ((seqA[i] || 0) > (seqB[i] || 0)) return 1; }
+            for (let i = 0; i < Math.max(seqA.length, seqB.length); i++) {
+                if ((seqA[i] || 0) < (seqB[i] || 0)) return -1;
+                if ((seqA[i] || 0) > (seqB[i] || 0)) return 1;
+            }
             return 0;
         });
+
         const body = compIndicators.map(ind => {
-            const evalData = this.evaluations.find(e => String(e.indicator_id) === String(ind.id) || String(e.indicator_id) === String(ind.indicator_id) || String(e.indicator_id) === String(ind.sequence));
-            const resultText = evalData ? (evalData.operation_result || evalData.result || '-') : '-';
-            const score = evalData ? (evalData.operation_score || evalData.score || '-') : '-';
-            return [ind.sequence || '-', ind.indicator_name || '-', { content: '', blocks: this.parseHtmlToBlocks(resultText) }, score];
+            const evalEntry = selfMap[String(ind.id)] || selfMap[String(ind.indicator_id)] || selfMap[String(ind.sequence)] || {};
+            const critEntry = targetMap[String(ind.id)] || targetMap[String(ind.indicator_id)] || targetMap[String(ind.sequence)] || {};
+            const commEntry = commMap[String(ind.id)] || commMap[String(ind.indicator_id)] || commMap[String(ind.sequence)] || {};
+
+            const resultText = evalEntry.operation_result || evalEntry.result || '-';
+            const targetScore = critEntry.score || '-';
+            const selfScore = evalEntry.operation_score || evalEntry.score || '-';
+            const commScore = commEntry.committee_score || '-';
+
+            return [
+                ind.sequence || '-',
+                ind.indicator_name || '-',
+                { content: '', blocks: this.parseHtmlToBlocks(resultText) },
+                targetScore,
+                selfScore,
+                commScore
+            ];
         });
+
+        // Add Footer Row for averages
+        const mainCount = compIndicators.filter(ind => !String(ind.sequence).includes('.')).length;
+
+        const getAvg = (list, dataMap, scoreKey) => {
+            const valid = list.map(ind => {
+                const val = getVal(ind, dataMap, scoreKey);
+                return val > 0 ? val : NaN;
+            }).filter(v => !isNaN(v));
+            if (valid.length === 0) return '-';
+            const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+            return Number.isInteger(avg) ? avg : avg.toFixed(2);
+        };
+
+        const targetAvg = getAvg(compIndicators, targetMap, 'score');
+        const selfAvg = getAvg(compIndicators, selfMap, 'operation_score');
+        const commAvg = getAvg(compIndicators, commMap, 'committee_score');
+
+        body.push([
+            '',
+            `รวม ${mainCount} ตัวบ่งชี้`,
+            '',
+            targetAvg,
+            selfAvg,
+            commAvg
+        ]);
+
         autoTable(this.doc, {
-            head: [['ลำดับ', 'ตัวบ่งชี้', 'ผลการดำเนินงาน', 'คะแนน']], body: body, startY: this.currentY, theme: 'grid',
-            styles: { font: this.fontFamily, fontSize: 10, cellPadding: 3, overflow: 'linebreak', fontStyle: 'normal' },
-            headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal', fontSize: 10 },
-            columnStyles: { 0: { halign: 'center', cellWidth: 15 }, 1: { cellWidth: 40 }, 2: { cellWidth: 95 }, 3: { halign: 'center', cellWidth: 20 } },
-            didParseCell: (data) => { if (data.section === 'body' && data.column.index === 2) this.tableComplexCellHook(data, 95); },
+            head: [['ลำดับ', 'ตัวบ่งชี้', 'ผลการดำเนินงาน', 'เป้าหมาย', 'ประเมินตน', 'กรรมการ']],
+            body: body,
+            startY: this.currentY,
+            theme: 'grid',
+            styles: { font: this.fontFamily, fontSize: 10, cellPadding: 2, overflow: 'linebreak', fontStyle: 'normal' },
+            headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal', fontSize: 10, cellPadding: 1.5 },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 15 },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 60 },
+                3: { halign: 'center', cellWidth: 20 },
+                4: { halign: 'center', cellWidth: 20 },
+                5: { halign: 'center', cellWidth: 20 }
+            },
+            didParseCell: (data) => {
+                if (data.section === 'body' && data.column.index === 2) this.tableComplexCellHook(data, 60);
+                if (data.row.index === body.length - 1) {
+                    data.cell.styles.font = this.fontFamily;
+                    data.cell.styles.fontStyle = 'normal'; // ป้องกันเพี้ยน
+                    data.cell.styles.fillColor = [243, 244, 246];
+                    if (data.column.index === 1) data.cell.styles.halign = 'right';
+                }
+            },
             didDrawCell: (data) => { if (data.section === 'body' && data.column.index === 2) this.tableComplexDrawHook(data, data.cell.width); },
             rowPageBreak: 'avoid'
         });

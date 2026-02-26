@@ -153,7 +153,7 @@ export default function MasterIndicatorsTable({ items, components, onEdit, onDel
                 {treeData.map((comp) => {
                     const isExpanded = expandedComponents[comp.id] !== false;
                     return (
-                        <div key={comp.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div key={comp.id} className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                             <div
                                 className="bg-gray-50 px-6 py-4 flex items-center justify-between cursor-pointer border-b border-gray-300"
                                 onClick={() => toggleComponent(comp.id)}

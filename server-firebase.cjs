@@ -1095,8 +1095,33 @@ app.get('/api/bulk/session-summary', async (req, res) => {
         }
       }
 
-      // 3. Fallback: Removed as it was causing data leakage across years
-      // if (resultsMap.size === 0) { ... }
+      // 3. Fallback: If no evaluations found for CURRENT year/sessions, 
+      // check if we have any evaluations for THIS MAJOR at all (only for 'evaluations' collection - which are target/criteria)
+      if (collectionName === 'evaluations' && resultsMap.size === 0) {
+        console.log(`[BULK] Fallback: Fetching all evaluations for major: ${major_name}`);
+        const snap = await db.collection(collectionName).where('major_name', '==', major_name).get();
+        snap.docs.forEach(doc => {
+          const d = doc.data();
+          // Filter in memory for year mismatch (e.g. "2569,2569" vs "2569")
+          const dYear = String(d.year || '');
+          if (year && (dYear === String(year) || dYear.includes(String(year)))) {
+            resultsMap.set(doc.id, { id: doc.id, ...doc.data() });
+          } else if (!year) {
+            resultsMap.set(doc.id, { id: doc.id, ...doc.data() });
+          }
+        });
+
+        // If STILL empty, take most recent per indicator (any year)
+        if (resultsMap.size === 0) {
+          snap.docs.forEach(doc => {
+            const d = doc.data();
+            const existing = resultsMap.get(String(d.indicator_id));
+            if (!existing || (d.created_at && (!existing.created_at || d.created_at > existing.created_at))) {
+              resultsMap.set(String(d.indicator_id), { id: doc.id, ...doc.data() });
+            }
+          });
+        }
+      }
 
       return Array.from(resultsMap.values());
     };

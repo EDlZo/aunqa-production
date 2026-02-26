@@ -13,7 +13,7 @@ export default function Footer() {
           {/* University Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
+              <div className="p-2 bg-blue-600 rounded-2xl">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -31,7 +31,7 @@ export default function Footer() {
           {/* Contact Info */}
           <div className="space-y-3">
             <div className="flex items-start space-x-3">
-              <div className="p-2 bg-gray-700 rounded-lg flex-shrink-0">
+              <div className="p-2 bg-gray-700 rounded-2xl flex-shrink-0">
                 <MapPin className="w-4 h-4 text-blue-400" />
               </div>
               <div className="text-xs">
@@ -41,7 +41,7 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gray-700 rounded-lg flex-shrink-0">
+              <div className="p-2 bg-gray-700 rounded-2xl flex-shrink-0">
                 <Mail className="w-4 h-4 text-blue-400" />
               </div>
               <a href="mailto:saraban@rmutsv.ac.th" className="text-xs text-gray-300 hover:text-blue-400 transition-colors">
@@ -50,7 +50,7 @@ export default function Footer() {
             </div>
 
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gray-700 rounded-lg flex-shrink-0">
+              <div className="p-2 bg-gray-700 rounded-2xl flex-shrink-0">
                 <Phone className="w-4 h-4 text-blue-400" />
               </div>
               <a href="tel:+6674317100" className="text-xs text-gray-300 hover:text-blue-400 transition-colors">

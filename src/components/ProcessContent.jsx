@@ -7,7 +7,7 @@ export default function ProcessContent({ hasPermission }) {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold text-gray-900">ขั้นตอนการประเมิน</h3>
           {hasPermission('edit_assessments') && (
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-2xl text-sm hover:bg-blue-700 transition-colors">
               แก้ไขขั้นตอน
             </button>
           )}

@@ -176,7 +176,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                     {/* Parent Info (If any) */}
                     {formData.parent_id && (
                         <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 rounded-lg">
+                            <div className="p-2 bg-amber-100 rounded-2xl">
                                 <Activity className="w-4 h-4 text-amber-600" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -286,7 +286,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                                 <button
                                     type="button"
                                     onClick={addSubItem}
-                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg transition-all"
+                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-2xl transition-all"
                                 >
                                     + เพิ่มรายการ
                                 </button>
@@ -313,7 +313,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                                             <button
                                                 type="button"
                                                 onClick={() => removeSubItem(index)}
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

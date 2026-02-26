@@ -533,7 +533,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
   })();
 
   return (
-    <div className="bg-white rounded-lg shadow-md">
+    <div className="bg-white rounded-2xl shadow-md">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <div>
@@ -553,7 +553,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
 
       <div className="p-6">
         {/* ข้อมูลเกณฑ์เป้าหมายเดิม */}
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
           <div className="flex items-center gap-2 text-blue-800 font-bold mb-2">
             <Target className="w-4 h-4" />
             ข้อมูลเป้าหมายที่กำหนดไว้
@@ -666,7 +666,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
               )}
             </label>
 
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="border border-gray-200 rounded-2xl overflow-hidden">
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -793,7 +793,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
             </h4>
             <div className="space-y-4">
               {evaluationHistory.map((evaluation, index) => (
-                <div key={evaluation.id || index} className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                <div key={evaluation.id || index} className="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-sm font-bold text-gray-700 bg-gray-200 px-3 py-1 rounded">ครั้งที่ {evaluationHistory.length - index}</span>
                     <span className="text-xs text-gray-500">
@@ -902,14 +902,14 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                   <button
                     type="button"
                     onClick={() => setEvidenceType('file')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'file' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 py-2 px-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'file' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     <FileText className="w-4 h-4" /> ไฟล์
                   </button>
                   <button
                     type="button"
                     onClick={() => setEvidenceType('url')}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'url' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex-1 py-2 px-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${evidenceType === 'url' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     <Link2 className="w-4 h-4" /> URL
                   </button>

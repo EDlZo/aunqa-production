@@ -151,7 +151,7 @@ export default function App() {
             <p className="text-gray-600 mb-6">เข้าสู่ระบบเพื่อดูเนื้อหาและใช้งานฟีเจอร์ต่างๆ</p>
             <button
               onClick={() => setShowLogin(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium hover:bg-blue-700 transition-colors"
             >
               เข้าสู่ระบบ
             </button>
@@ -207,7 +207,7 @@ export default function App() {
               {['system_admin', 'qa_admin'].includes(role) && (
                 <button
                   onClick={() => setActiveTab('round_management')}
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-colors shadow-lg"
                 >
                   <Settings className="w-5 h-5" />
                   จัดการรอบประเมิน (สำหรับผู้ดูแล)

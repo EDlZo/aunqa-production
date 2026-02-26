@@ -161,7 +161,7 @@ export default function ProgramSelection({
       {step === 'level' && (
         <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in fade-in slide-in-from-bottom-2">
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="p-2 bg-blue-50 rounded-2xl">
               <Layers className="w-6 h-6 text-blue-600" />
             </div>
             เลือกระดับการศึกษา
@@ -192,7 +192,7 @@ export default function ProgramSelection({
         <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
+              <div className="p-2 bg-blue-50 rounded-2xl">
                 <School className="w-6 h-6 text-blue-600" />
               </div>
               เลือกคณะ
@@ -228,7 +228,7 @@ export default function ProgramSelection({
         <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="p-2 bg-emerald-50 rounded-lg">
+              <div className="p-2 bg-emerald-50 rounded-2xl">
                 <BookOpen className="w-6 h-6 text-emerald-600" />
               </div>
               เลือกสาขาวิชา / หลักสูตร

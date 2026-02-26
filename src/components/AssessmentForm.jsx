@@ -166,7 +166,7 @@ export default function AssessmentForm() {
                   เกณฑ์มาตรฐาน <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
                   rows="4"
                   placeholder="รายละเอียดเกณฑ์/ค่าเป้าหมาย..."
                   value={targetText}
@@ -187,7 +187,7 @@ export default function AssessmentForm() {
                       min="0"
                       max="5"
                       step="0.1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="0.0 - 5.0"
                       value={score}
                       onChange={(e) => setScore(e.target.value)}
@@ -212,7 +212,7 @@ export default function AssessmentForm() {
                         type="button"
                         onClick={() => setScore(num.toString())}
                         className={
-                          "py-2 px-3 rounded-lg border border-gray-300 text-sm font-medium transition-all " +
+                          "py-2 px-3 rounded-2xl border border-gray-300 text-sm font-medium transition-all " +
                           (score === num.toString()
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50')
@@ -231,7 +231,7 @@ export default function AssessmentForm() {
                   หมายเหตุเพิ่มเติม
                 </label>
                 <textarea
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
                   rows="4"
                   placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)..."
                   value={comment}
@@ -246,7 +246,7 @@ export default function AssessmentForm() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="flex-1 px-6 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-all duration-200"
+              className="flex-1 px-6 py-3 bg-white text-gray-700 font-medium rounded-2xl border border-gray-300 hover:bg-gray-50 transition-all duration-200"
               disabled={isSubmitting}
             >
               ยกเลิก
@@ -254,7 +254,7 @@ export default function AssessmentForm() {
             <button
               type="submit"
               disabled={isSubmitting || !targetText || !score}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-2xl hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isSubmitting ? (
                 <>
