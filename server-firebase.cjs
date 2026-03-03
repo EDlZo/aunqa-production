@@ -2377,6 +2377,7 @@ app.post('/api/admin/clear-collection', async (req, res) => {
 
 app.post('/api/admin/reset-assessment-data', async (req, res) => {
   try {
+    const { year } = req.body;
     const collectionsToClear = [
       'quality_components', 'indicators', 'evaluations',
       'evaluations_actual', 'committee_evaluations',
@@ -2384,27 +2385,63 @@ app.post('/api/admin/reset-assessment-data', async (req, res) => {
     ];
 
     if (!db) {
-      console.log('[ADMIN] Mock reset assessment data');
-      return res.json({ success: true, message: '(Mock) รีเซ็ตข้อมูลการประเมินทั้งหมดเรียบร้อยแล้ว' });
+      console.log(`[ADMIN] Mock reset assessment data${year ? ` for year ${year}` : ''}`);
+      return res.json({ success: true, message: `(Mock) รีเซ็ตข้อมูลการประเมิน${year ? `ปี ${year} ` : ''}เรียบร้อยแล้ว` });
     }
 
     let totalDeleted = 0;
-    for (const collection of collectionsToClear) {
-      const snapshot = await db.collection(collection).get();
-      if (!snapshot.empty) {
-        const docs = snapshot.docs;
-        for (let i = 0; i < docs.length; i += 500) {
-          const batch = db.batch();
-          const chunk = docs.slice(i, i + 500);
-          chunk.forEach(doc => batch.delete(doc.ref));
-          await batch.commit();
+    for (const collectionName of collectionsToClear) {
+      const collectionRef = db.collection(collectionName);
+      let snapshot;
+
+      if (year) {
+        const yearField = collectionName === 'assessment_sessions' ? 'round_year' : 'year';
+        const yearStr = String(year);
+        const yearNum = parseInt(year);
+
+        // Fetch docs for both string and number versions of the year
+        const [snapStr, snapNum] = await Promise.all([
+          collectionRef.where(yearField, '==', yearStr).get(),
+          !isNaN(yearNum) && yearStr !== String(yearNum) ? null : collectionRef.where(yearField, '==', isNaN(yearNum) ? yearStr : yearNum).get()
+        ]);
+
+        const docs = new Map();
+        if (snapStr) snapStr.docs.forEach(doc => docs.set(doc.id, doc));
+        if (snapNum) snapNum.docs.forEach(doc => docs.set(doc.id, doc));
+
+        const docsArray = Array.from(docs.values());
+        if (docsArray.length > 0) {
+          for (let i = 0; i < docsArray.length; i += 500) {
+            const batch = db.batch();
+            const chunk = docsArray.slice(i, i + 500);
+            chunk.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          }
+          totalDeleted += docsArray.length;
         }
-        totalDeleted += snapshot.size;
+      } else {
+        // Total Reset - Delete everything in these collections
+        snapshot = await collectionRef.get();
+        if (!snapshot.empty) {
+          const docs = snapshot.docs;
+          for (let i = 0; i < docs.length; i += 500) {
+            const batch = db.batch();
+            const chunk = docs.slice(i, i + 500);
+            chunk.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          }
+          totalDeleted += snapshot.size;
+        }
       }
     }
 
-    console.log(`[ADMIN] Reset assessment data: Deleted ${totalDeleted} documents across ${collectionsToClear.length} collections`);
-    res.json({ success: true, message: 'รีเซ็ตข้อมูลการประเมินทั้งหมด (Wipe Assessment Data) เรียบร้อยแล้ว' });
+    console.log(`[ADMIN] Reset assessment data: Deleted ${totalDeleted} documents across ${collectionsToClear.length} collections${year ? ` (Year: ${year})` : ''}`);
+    res.json({
+      success: true,
+      message: year
+        ? `รีเซ็ตข้อมูลการประเมินปี ${year} เรียบร้อยแล้ว (ลบ ${totalDeleted} รายการ)`
+        : 'รีเซ็ตข้อมูลการประเมินทั้งหมด (Wipe All Years) เรียบร้อยแล้ว'
+    });
   } catch (error) {
     console.error('Error resetting assessment data:', error);
     res.status(500).json({ error: 'ไม่สามารถรีเซ็ตข้อมูลได้', details: error.message });

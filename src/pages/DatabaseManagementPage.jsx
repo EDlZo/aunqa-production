@@ -17,6 +17,7 @@ export default function DatabaseManagementPage({ setActiveTab }) {
     const [stats, setStats] = useState({});
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
+    const [selectedResetYear, setSelectedResetYear] = useState('');
     const [error, setError] = useState(null);
 
     // Management Mode State
@@ -286,19 +287,25 @@ export default function DatabaseManagementPage({ setActiveTab }) {
     const handleResetAssessmentData = () => {
         showConfirm({
             title: 'พื้นที่อันตราย!',
-            message: 'คำเตือน: คุณกำลังจะล้างข้อมูลการประเมินทั้งหมด รวมถึงองค์ประกอบและตัวบ่งชี้ ต้องการดำเนินการต่อหรือไม่? การดำเนินการนี้ล้างข้อมูลทั้งระบบ!',
+            message: `คำเตือน: คุณกำลังจะล้างข้อมูลการประเมิน${selectedResetYear ? `ของปี ${selectedResetYear} ` : 'ทั้งระบบ '}รวมถึงองค์ประกอบและตัวบ่งชี้ ต้องการดำเนินการต่อหรือไม่? การดำเนินการนี้ล้างข้อมูล!`,
             type: 'error',
             confirmText: 'ฉันเข้าใจ ยืนยันการรีเซ็ต',
             onConfirm: () => {
                 showConfirm({
                     title: 'ยืนยันครั้งสุดท้าย',
-                    message: 'ข้อมูลทั้งหมด (คะแนน, ไฟล์, ผลการดำเนินงาน) จะหายไปถาวร ยืนยันอีกครั้ง?',
+                    message: selectedResetYear
+                        ? `ข้อมูลการประเมินปี ${selectedResetYear} ทั้งหมดจะหายไปถาวร ยืนยันอีกครั้ง?`
+                        : 'ข้อมูลการประเมินทั้งหมดทุกปี จะหายไปถาวร ยืนยันอีกครั้ง?',
                     type: 'error',
-                    confirmText: 'ยืนยันลบข้อมูลทั้งหมด',
+                    confirmText: 'ยืนยันลบข้อมูล',
                     onConfirm: async () => {
                         try {
                             setActionLoading('reset_all');
-                            const res = await fetch(`${BASE_URL}/api/admin/reset-assessment-data`, { method: 'POST' });
+                            const res = await fetch(`${BASE_URL}/api/admin/reset-assessment-data`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ year: selectedResetYear })
+                            });
                             if (res.ok) {
                                 const data = await res.json();
                                 showAlert({ title: 'สำเร็จ', message: data.message, type: 'success' });
@@ -319,6 +326,7 @@ export default function DatabaseManagementPage({ setActiveTab }) {
             }
         });
     };
+
 
     const collectionCards = [
         { id: 'quality_components', label: 'องค์ประกอบคุณภาพ', description: 'กลุ่มคุณภาพและข้อกำหนดหลัก', icon: <Layers className="w-6 h-6" />, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -551,14 +559,29 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                                 คำเตือน: ระบบจะทำการลบข้อมูลการประเมิน องค์ประกอบ และตัวบ่งชี้ ทั้งหมดในครั้งเดียว ข้อมูลที่ไม่ใช่ Master Templates จะหายไปถาวร
                             </p>
                         </div>
-                        <button
-                            onClick={handleResetAssessmentData}
-                            disabled={actionLoading === 'reset_all'}
-                            className="bg-red-600 text-white px-6 py-3 rounded-md font-bold hover:bg-red-700 transition-all shadow shadow-red-200 active:scale-95 flex items-center gap-2 disabled:opacity-50"
-                        >
-                            <RotateCcw className={`w-5 h-5 ${actionLoading === 'reset_all' ? 'animate-spin' : ''}`} />
-                            {actionLoading === 'reset_all' ? 'กำลังดำเนินการ...' : 'รีเซ็ตระบบ'}
-                        </button>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-gray-700">เลือกปีที่ต้องการรีเซ็ต:</label>
+                                <select
+                                    value={selectedResetYear}
+                                    onChange={(e) => setSelectedResetYear(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-red-500 focus:border-red-500"
+                                >
+                                    <option value="">-- รีเซ็ตทุกปี (ล้างทั้งระบบ) --</option>
+                                    {rounds.map(r => (
+                                        <option key={r.id} value={r.year}>ปีการศึกษา {r.year}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button
+                                onClick={handleResetAssessmentData}
+                                disabled={actionLoading === 'reset_all'}
+                                className="bg-red-600 text-white px-6 py-3 rounded-md font-bold hover:bg-red-700 transition-all shadow shadow-red-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                <RotateCcw className={`w-5 h-5 ${actionLoading === 'reset_all' ? 'animate-spin' : ''}`} />
+                                {actionLoading === 'reset_all' ? 'กำลังดำเนินการ...' : selectedResetYear ? `รีเซ็ตข้อมูลปี ${selectedResetYear}` : 'รีเซ็ตข้อมูลทุกปี'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
