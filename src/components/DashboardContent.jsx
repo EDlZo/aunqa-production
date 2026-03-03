@@ -12,7 +12,7 @@ import {
   Title as ChartTitle,
 } from 'chart.js';
 import { Doughnut, Bar, Line } from 'react-chartjs-2';
-import { LayoutDashboard, FileText, CheckCircle, GraduationCap, Clock, RefreshCcw, ChevronRight, BarChart3, Activity, X } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckCircle, GraduationCap, Clock, RefreshCcw, RefreshCw, ChevronRight, BarChart3, Activity, X } from 'lucide-react';
 import ProgramSelection from './ProgramSelection';
 import { BASE_URL } from '../config/api.js';
 
@@ -634,6 +634,15 @@ export default function DashboardContent({ user }) {
                 ปิดหน้าต่าง
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="fixed inset-0 bg-white/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="flex flex-col items-center">
+            <RefreshCw className="w-10 h-10 text-blue-600 animate-spin mb-2" />
+            <span className="text-gray-600 font-medium">กำลังโหลดข้อมูล...</span>
           </div>
         </div>
       )}
