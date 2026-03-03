@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Users, Settings, Clock, Shield, ChevronRight, School } from 'lucide-react';
+import { Users, Settings, Clock, Shield, ChevronRight, School, Database } from 'lucide-react';
 
 export default function SystemManagementPage({ setActiveTab }) {
     useEffect(() => {
@@ -19,8 +19,8 @@ export default function SystemManagementPage({ setActiveTab }) {
             id: 'round_management',
             title: 'จัดการรอบประเมิน',
             description: 'กำหนดปีการศึกษาและจัดการสถานะรอบการประเมิน',
-            icon: <Clock className="w-8 h-8 text-orange-600" />,
-            color: 'bg-orange-50 text-orange-600',
+            icon: <Clock className="w-8 h-8 text-blue-600" />,
+            color: 'bg-blue-50 text-blue-600',
             action: () => setActiveTab('round_management')
         },
         {
@@ -35,8 +35,8 @@ export default function SystemManagementPage({ setActiveTab }) {
             id: 'database_management',
             title: 'จัดการฐานข้อมูล',
             description: 'ตรวจสอบสถิติ ล้างข้อมูล และรีเซ็ตระบบฐานข้อมูล',
-            icon: <Settings className="w-8 h-8 text-gray-600" />,
-            color: 'bg-gray-50 text-gray-600',
+            icon: <Database className="w-8 h-8 text-blue-600" />,
+            color: 'bg-blue-50 text-blue-600',
             action: () => setActiveTab('database_management')
         }
     ];
