@@ -229,7 +229,13 @@ export default function RoundManagementPage({ setActiveTab }) {
                                             </select>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {round.created_at?.seconds ? new Date(round.created_at.seconds * 1000).toLocaleDateString('th-TH') : '-'}
+                                            {(() => {
+                                                const dt = round.created_at;
+                                                if (!dt) return '-';
+                                                const seconds = dt.seconds || dt._seconds;
+                                                if (seconds) return new Date(seconds * 1000).toLocaleDateString('th-TH');
+                                                return new Date(dt).toLocaleDateString('th-TH');
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button
