@@ -49,7 +49,7 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         setCurrentUser(parsed);
-        setActiveTab('dashboard');
+        setActiveTab('about');
       }
       const sel = localStorage.getItem('selectedProgramContext');
       if (sel) {
@@ -490,7 +490,7 @@ export default function App() {
               setCurrentUser(user);
               try { localStorage.setItem('currentUser', JSON.stringify(user)); } catch { }
               setShowLogin(false);
-              setActiveTab('dashboard'); // เปลี่ยนไปหน้า dashboard หลังจากเข้าสู่ระบบ
+              setActiveTab('about'); // เปลี่ยนไปหน้า about หลังจากเข้าสู่ระบบ
             }}
             onClose={() => setShowLogin(false)}
           />
@@ -498,6 +498,6 @@ export default function App() {
 
         <Footer />
       </div>
-    </ModalProvider>
+    </ModalProvider >
   );
 }
