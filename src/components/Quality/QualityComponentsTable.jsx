@@ -72,7 +72,11 @@ export default function QualityComponentsTable({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {Array.isArray(items) && items.map((item, idx) => (
+          {Array.isArray(items) && [...items].sort((a, b) => {
+            const numA = parseInt(a.component_id || a.componentId || 0, 10);
+            const numB = parseInt(b.component_id || b.componentId || 0, 10);
+            return numA - numB;
+          }).map((item, idx) => (
             <tr key={item.id || idx} className="hover:bg-gray-50">
               <td className="px-4 py-4 text-center text-sm font-medium text-gray-900 border-r border-gray-200">
                 <span className="inline-flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold">
