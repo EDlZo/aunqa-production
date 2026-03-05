@@ -362,6 +362,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                         // Role-based permissions
                         const isSystemAdmin = currentUser?.role === 'system_admin';
                         const isReporter = currentUser?.role === 'reporter';
+                        const isSarManager = currentUser?.role === 'sar_manager';
                         const isManager = ['sar_manager', 'qa_admin'].includes(currentUser?.role);
 
                         // Actions for Evaluation Mode
@@ -369,8 +370,8 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                         const canReview = mode === 'evaluation' && (isManager || isSystemAdmin) && isPending;
                         const canViewOnly = mode === 'evaluation' && evalData && !canRecordOrEdit && !canReview;
 
-                        // Actions for Criteria Mode
-                        const canManageCriteria = mode === 'criteria' && (isSystemAdmin || isReporter); // Adjusted to match your usual pattern
+                        // Actions for Criteria Mode - SAR Manager can set criteria
+                        const canManageCriteria = mode === 'criteria' && (isSystemAdmin || isReporter || isSarManager);
 
                         return (
                           <div className="flex flex-col items-center gap-2">
