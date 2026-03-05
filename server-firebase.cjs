@@ -916,11 +916,37 @@ app.post('/api/master-indicators', async (req, res) => {
     const data = { ...req.body, created_at: admin.firestore.FieldValue.serverTimestamp() };
     if (data.component_id) data.component_id = parseInt(data.component_id);
 
+    console.log('📝 Creating master indicator:', { sequence: data.sequence, component_id: data.component_id });
+
     if (!db) return res.json({ id: Date.now(), ...data });
+
+    // Check for duplicate sequence in the same component
+    if (data.sequence && data.component_id) {
+      console.log('🔍 Checking for duplicate sequence...');
+      const duplicateCheck = await db.collection('master_indicators')
+        .where('component_id', '==', data.component_id)
+        .where('sequence', '==', data.sequence)
+        .get();
+
+      console.log('📊 Duplicate check result:', { 
+        isEmpty: duplicateCheck.empty, 
+        count: duplicateCheck.size 
+      });
+
+      if (!duplicateCheck.empty) {
+        console.log('❌ Duplicate found! Returning error...');
+        return res.status(400).json({ 
+          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+        });
+      }
+    }
+
+    console.log('✅ No duplicate, creating document...');
     const docRef = await db.collection('master_indicators').add(data);
+    console.log('✅ Document created:', docRef.id);
     res.json({ id: docRef.id, ...data });
   } catch (error) {
-    console.error('Error creating master indicator:', error);
+    console.error('❌ Error creating master indicator:', error);
     res.status(500).json({ error: 'ไม่สามารถสร้างแม่แบบตัวบ่งชี้ได้' });
   }
 });
@@ -935,6 +961,34 @@ app.post('/api/master-indicators/bulk', async (req, res) => {
     const results = [];
     if (!db) {
       return res.json(items.map((item, index) => ({ id: Date.now() + index, ...item })));
+    }
+
+    // Check for duplicate sequences within the same component
+    for (const item of items) {
+      if (item.sequence && item.component_id) {
+        const duplicateCheck = await db.collection('master_indicators')
+          .where('component_id', '==', parseInt(item.component_id))
+          .where('sequence', '==', item.sequence)
+          .get();
+
+        if (!duplicateCheck.empty) {
+          return res.status(400).json({ 
+            error: `ลำดับ "${item.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+          });
+        }
+      }
+    }
+
+    // Check for duplicates within the batch itself
+    const sequenceMap = new Map();
+    for (const item of items) {
+      const key = `${item.component_id}-${item.sequence}`;
+      if (sequenceMap.has(key)) {
+        return res.status(400).json({ 
+          error: `ลำดับ "${item.sequence}" ซ้ำกันในรายการที่กำลังเพิ่ม` 
+        });
+      }
+      sequenceMap.set(key, true);
     }
 
     const batch = db.batch();
@@ -969,6 +1023,24 @@ app.patch('/api/master-indicators/:id', async (req, res) => {
     delete data.id;
 
     if (!db) return res.json({ success: true });
+
+    // Check for duplicate sequence in the same component (excluding current document)
+    if (data.sequence && data.component_id) {
+      const duplicateCheck = await db.collection('master_indicators')
+        .where('component_id', '==', data.component_id)
+        .where('sequence', '==', data.sequence)
+        .get();
+
+      // Check if any duplicate is NOT the current document being updated
+      const hasDuplicate = duplicateCheck.docs.some(doc => doc.id !== id);
+      
+      if (hasDuplicate) {
+        return res.status(400).json({ 
+          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+        });
+      }
+    }
+
     await db.collection('master_indicators').doc(id).update(data);
     res.json({ success: true });
   } catch (error) {

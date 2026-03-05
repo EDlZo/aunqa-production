@@ -321,13 +321,14 @@ export default function IndicatorTable({
       }
       // ตรวจซ้ำก่อนเพิ่ม (ลำดับหรือชื่อซ้ำ)
       const dupBySeq = indicatorList.some(ind => String(ind.sequence).trim() === String(indicatorSequence).trim());
-      const dupByName = indicatorList.some(ind => {
-        const nameA = String(ind.indicator_name || ind.indicatorName || '').trim().toLowerCase();
-        const nameB = String(indicatorName).trim().toLowerCase();
-        return nameA === nameB;
-      });
-      if (dupBySeq || dupByName) {
-        setFlash({ message: 'เพิ่มตัวบ่งชี้นี้ไปแล้ว', type: 'error' });
+      // Removed duplicate name check as per request
+      // const dupByName = indicatorList.some(ind => {
+      //   const nameA = String(ind.indicator_name || ind.indicatorName || '').trim().toLowerCase();
+      //   const nameB = String(indicatorName).trim().toLowerCase();
+      //   return nameA === nameB;
+      // });
+      if (dupBySeq) {
+        setFlash({ message: 'มีตัวบ่งชี้ลำดับนี้แล้ว', type: 'error' });
         return;
       }
     }
@@ -378,15 +379,15 @@ export default function IndicatorTable({
         const mainCode = `AUN.${mainMatch[1]}`;
         const mainPart = String(parseInt(mainMatch[1], 10));
 
-        // ตรวจซ้ำหัวข้อหลัก
         const existsMain = indicatorList.some(ind => {
-          const nameA = String(ind.indicator_name || ind.indicatorName || '').trim().toLowerCase();
-          const nameB = String(indicatorName).trim().toLowerCase();
-          return String(ind.sequence) === mainPart || nameA === nameB;
+          // Removed duplicate name check as per request
+          // const nameA = String(ind.indicator_name || ind.indicatorName || '').trim().toLowerCase();
+          // const nameB = String(indicatorName).trim().toLowerCase();
+          return String(ind.sequence) === mainPart; // || nameA === nameB;
         });
 
         if (existsMain) {
-          setFlash({ message: 'เพิ่มตัวบ่งชี้นี้ไปแล้ว', type: 'error' });
+          setFlash({ message: 'มีตัวบ่งชี้ลำดับนี้แล้ว', type: 'error' });
           return;
         }
 

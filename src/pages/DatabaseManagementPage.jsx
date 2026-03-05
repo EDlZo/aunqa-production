@@ -188,8 +188,9 @@ export default function DatabaseManagementPage({ setActiveTab }) {
 
                         if (!bulkRes.ok) {
                             const errData = await bulkRes.json().catch(() => ({}));
+                            const errorMessage = errData.error || `บันทึกหัวข้อย่อยบางส่วนไม่สำเร็จ (${bulkRes.status})`;
                             console.error('Bulk save failed:', bulkRes.status, errData);
-                            showAlert({ title: 'คำเตือน', message: `บันทึกหัวข้อย่อยบางส่วนไม่สำเร็จ (${bulkRes.status})`, type: 'warning' });
+                            showAlert({ title: 'คำเตือน', message: errorMessage, type: 'warning' });
                         }
                     }
 
@@ -199,8 +200,9 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                     fetchStats();
                 } else {
                     const errData = await mainRes.json().catch(() => ({}));
+                    const errorMessage = errData.error || `ไม่สามารถบันทึกข้อมูลหลักได้ (${mainRes.status})`;
                     console.error('Main save failed:', mainRes.status, errData);
-                    showAlert({ title: 'ข้อผิดพลาด', message: `ไม่สามารถบันทึกข้อมูลหลักได้ (${mainRes.status})`, type: 'error' });
+                    showAlert({ title: 'ข้อผิดพลาด', message: errorMessage, type: 'error' });
                 }
                 return;
             }
@@ -215,6 +217,9 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                 body: JSON.stringify(formData)
             });
 
+            console.log('Response status:', res.status);
+            console.log('Response ok:', res.ok);
+
             if (res.ok) {
                 setShowIndForm(false);
                 setEditingItem(null);
@@ -222,7 +227,14 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                 fetchStats();
                 showAlert({ title: 'สำเร็จ', message: 'บันทึกข้อมูลตัวบ่งชี้เรียบร้อยแล้ว', type: 'success' });
             } else {
-                showAlert({ title: 'ข้อผิดพลาด', message: 'ไม่สามารถบันทึกข้อมูลได้', type: 'error' });
+                const errorData = await res.json().catch((e) => {
+                    console.error('Failed to parse error JSON:', e);
+                    return {};
+                });
+                const errorMessage = errorData.error || 'ไม่สามารถบันทึกข้อมูลได้';
+                console.log('Error from backend:', errorData);
+                console.log('Error message to display:', errorMessage);
+                showAlert({ title: 'ข้อผิดพลาด', message: errorMessage, type: 'error' });
             }
         } catch (err) {
             console.error('Save indicator error:', err);
