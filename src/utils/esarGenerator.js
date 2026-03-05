@@ -577,21 +577,70 @@ export class ESARGenerator {
         });
         this.currentY = this.doc.lastAutoTable.finalY + 15;
         const evidenceList = [];
+        const evidenceLinks = []; // Store links for later
+        
         compIndicators.forEach(ind => {
             const evalData = this.evaluations.find(e => String(e.indicator_id) === String(ind.id));
             if (evalData && evalData.evidence_meta_json) {
                 try {
                     const meta = JSON.parse(evalData.evidence_meta_json);
-                    Object.values(meta).forEach(m => evidenceList.push([ind.sequence, m.name || m.url || '-']));
+                    Object.values(meta).forEach(m => {
+                        const fileName = m.name || m.url || '-';
+                        const fileUrl = m.url || '';
+                        evidenceList.push([ind.sequence, fileName]);
+                        evidenceLinks.push(fileUrl);
+                    });
                 } catch (e) { }
             }
         });
+        
         if (evidenceList.length > 0) {
             if (this.currentY + 20 > this.safeBottom) this.addPage();
-            this.doc.setFontSize(12); this.setFontSafe(); this.doc.text('รายการหลักฐานอ้างอิง:', this.margin, this.currentY); this.currentY += 5;
+            this.doc.setFontSize(12); 
+            this.setFontSafe(); 
+            this.doc.text('รายการหลักฐานอ้างอิง:', this.margin, this.currentY); 
+            this.currentY += 5;
+            
             autoTable(this.doc, {
-                head: [['ตัวบ่งชี้', 'ชื่อเอกสารหลักฐาน']], body: evidenceList, startY: this.currentY, theme: 'striped',
-                styles: { font: this.fontFamily, fontSize: 9, fontStyle: 'normal' }, headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'normal' }, rowPageBreak: 'avoid'
+                head: [['ตัวบ่งชี้', 'ชื่อเอกสารหลักฐาน']], 
+                body: evidenceList, 
+                startY: this.currentY, 
+                theme: 'striped',
+                styles: { font: this.fontFamily, fontSize: 9, fontStyle: 'normal' }, 
+                headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'normal' }, 
+                columnStyles: {
+                    1: { textColor: [37, 99, 235] } // Blue color for links
+                },
+                didDrawCell: (data) => {
+                    // Add clickable link to evidence file name
+                    if (data.section === 'body' && data.column.index === 1) {
+                        const rowIndex = data.row.index;
+                        const url = evidenceLinks[rowIndex];
+                        
+                        if (url) {
+                            // Add underline to indicate it's a link
+                            const textWidth = this.doc.getTextWidth(data.cell.text[0] || '');
+                            this.doc.setDrawColor(37, 99, 235);
+                            this.doc.setLineWidth(0.1);
+                            this.doc.line(
+                                data.cell.x + 2,
+                                data.cell.y + data.cell.height - 2,
+                                data.cell.x + 2 + textWidth,
+                                data.cell.y + data.cell.height - 2
+                            );
+                            
+                            // Add clickable link
+                            this.doc.link(
+                                data.cell.x,
+                                data.cell.y,
+                                data.cell.width,
+                                data.cell.height,
+                                { url: url }
+                            );
+                        }
+                    }
+                },
+                rowPageBreak: 'avoid'
             });
             this.currentY = this.doc.lastAutoTable.finalY + 10;
         }
