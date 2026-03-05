@@ -752,7 +752,11 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       </td>
                     </tr>
                   ) : (
-                    components.map((c) => (
+                    [...components].sort((a, b) => {
+                      const idA = parseInt(a.component_id || a.id || 0);
+                      const idB = parseInt(b.component_id || b.id || 0);
+                      return idA - idB;
+                    }).map((c) => (
                       <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-4 text-center border-r border-gray-200">
                           <span className="inline-flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold shadow-sm">

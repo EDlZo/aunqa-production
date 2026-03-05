@@ -245,17 +245,67 @@ export default function DatabaseManagementPage({ setActiveTab }) {
     const handleDeleteIndicator = (id) => {
         showConfirm({
             title: 'ยืนยันการลบ',
-            message: 'คุณแน่ใจหรือไม่ที่จะลบแม่แบบตัวบ่งชี้นี้?',
+            message: 'คุณแน่ใจหรือไม่ที่จะลบแม่แบบตัวบ่งชี้นี้? (ถ้ามีการใช้งานอยู่ ระบบจะ Archive แทนการลบ)',
             type: 'warning',
             onConfirm: async () => {
                 try {
                     const res = await fetch(`${BASE_URL}/api/master-indicators/${id}`, { method: 'DELETE' });
                     if (res.ok) {
+                        const data = await res.json();
                         fetchMasterData();
                         fetchStats();
-                        showAlert({ title: 'สำเร็จ', message: 'ลบข้อมูลสำเร็จ', type: 'success' });
+                        
+                        if (data.archived) {
+                            showAlert({ 
+                                title: 'Archive แทนการลบ', 
+                                message: data.message || 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ', 
+                                type: 'info' 
+                            });
+                        } else {
+                            showAlert({ title: 'สำเร็จ', message: 'ลบข้อมูลสำเร็จ', type: 'success' });
+                        }
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        showAlert({ 
+                            title: 'ข้อผิดพลาด', 
+                            message: errorData.error || 'ไม่สามารถลบข้อมูลได้', 
+                            type: 'error' 
+                        });
                     }
-                } catch (err) { console.error('Delete indicator error:', err); }
+                } catch (err) { 
+                    console.error('Delete indicator error:', err);
+                    showAlert({ title: 'ข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการลบข้อมูล', type: 'error' });
+                }
+            }
+        });
+    };
+
+    const handleRestoreIndicator = (id) => {
+        showConfirm({
+            title: 'ยืนยันการกู้คืน',
+            message: 'คุณต้องการกู้คืนแม่แบบตัวบ่งชี้นี้หรือไม่?',
+            type: 'confirm',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`${BASE_URL}/api/master-indicators/${id}/restore`, { 
+                        method: 'PATCH' 
+                    });
+                    if (res.ok) {
+                        fetchMasterData();
+                        fetchStats();
+                        showAlert({ title: 'สำเร็จ', message: 'กู้คืนแม่แบบเรียบร้อยแล้ว', type: 'success' });
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        showAlert({ 
+                            title: 'ข้อผิดพลาด', 
+                            message: errorData.error || 'ไม่สามารถกู้คืนได้', 
+                            type: 'error' 
+                        });
+                    }
+                } catch (err) {
+                    console.error('Restore indicator error:', err);
+                    showAlert({ title: 'ข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการกู้คืน', type: 'error' });
+                }
             }
         });
     };
@@ -422,6 +472,7 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                                 onAdd={() => { setEditingItem(null); setShowIndForm(true); }}
                                 onEdit={(item) => { setEditingItem(item); setShowIndForm(true); }}
                                 onDelete={handleDeleteIndicator}
+                                onRestore={handleRestoreIndicator}
                             />
                         )}
                     </div>

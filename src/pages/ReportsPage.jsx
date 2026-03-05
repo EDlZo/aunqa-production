@@ -297,7 +297,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {components.map((comp) => {
+              {[...components].sort((a, b) => {
+                const idA = parseInt(a.component_id || a.id || 0);
+                const idB = parseInt(b.component_id || b.id || 0);
+                return idA - idB;
+              }).map((comp) => {
                 const code = comp.quality_code || '';
                 const compIndicators = indicators.filter(ind =>
                   String(ind.component_id) === String(comp.id) ||
@@ -372,7 +376,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const renderResults = () => {
     return (
       <div className="space-y-8">
-        {components.map((comp) => {
+        {[...components].sort((a, b) => {
+          const idA = parseInt(a.component_id || a.id || 0);
+          const idB = parseInt(b.component_id || b.id || 0);
+          return idA - idB;
+        }).map((comp) => {
           const compIndicators = indicators.filter(ind =>
             String(ind.component_id) === String(comp.component_id) ||
             String(ind.id) === String(comp.id)

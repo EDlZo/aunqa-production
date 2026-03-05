@@ -1053,11 +1053,61 @@ app.delete('/api/master-indicators/:id', async (req, res) => {
   try {
     const { id } = req.params;
     if (!db) return res.json({ success: true });
+
+    // Get the master indicator
+    const masterDoc = await db.collection('master_indicators').doc(id).get();
+    if (!masterDoc.exists) {
+      return res.status(404).json({ error: 'ไม่พบแม่แบบตัวบ่งชี้' });
+    }
+
+    const masterData = masterDoc.data();
+    const sequence = masterData.sequence;
+    const componentId = masterData.component_id;
+
+    // Check if this master indicator is being used in any actual indicators
+    const indicatorsCheck = await db.collection('indicators')
+      .where('sequence', '==', sequence)
+      .where('component_id', '==', componentId)
+      .limit(1)
+      .get();
+
+    if (!indicatorsCheck.empty) {
+      // Master indicator is being used, archive it instead of deleting
+      await db.collection('master_indicators').doc(id).update({
+        is_archived: true,
+        archived_at: admin.firestore.FieldValue.serverTimestamp()
+      });
+      return res.json({ 
+        success: true, 
+        archived: true,
+        message: 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ' 
+      });
+    }
+
+    // Not being used, safe to delete
     await db.collection('master_indicators').doc(id).delete();
-    res.json({ success: true });
+    res.json({ success: true, deleted: true });
   } catch (error) {
     console.error('Error deleting master indicator:', error);
     res.status(500).json({ error: 'ไม่สามารถลบแม่แบบตัวบ่งชี้ได้' });
+  }
+});
+
+// Restore archived master indicator
+app.patch('/api/master-indicators/:id/restore', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!db) return res.json({ success: true });
+
+    await db.collection('master_indicators').doc(id).update({
+      is_archived: false,
+      archived_at: admin.firestore.FieldValue.delete()
+    });
+    
+    res.json({ success: true, message: 'กู้คืนแม่แบบเรียบร้อยแล้ว' });
+  } catch (error) {
+    console.error('Error restoring master indicator:', error);
+    res.status(500).json({ error: 'ไม่สามารถกู้คืนแม่แบบได้' });
   }
 });
 

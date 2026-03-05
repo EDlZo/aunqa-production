@@ -289,7 +289,11 @@ export default function AssessmentPage({ assessmentMode = 'evaluation', currentU
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {components.map((component, idx) => (
+                    {[...components].sort((a, b) => {
+                      const idA = parseInt(a.component_id || a.id || 0);
+                      const idB = parseInt(b.component_id || b.id || 0);
+                      return idA - idB;
+                    }).map((component, idx) => (
                       <tr key={component.id || idx} className="hover:bg-gray-50">
                         <td className="px-4 py-4 text-center text-sm font-medium text-gray-900 border-r border-gray-200">
                           <span className="inline-flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold">

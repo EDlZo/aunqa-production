@@ -7,13 +7,14 @@ import {
 } from 'lucide-react';
 
 // Recursive Row Component for Level 2+ Accordion
-const IndicatorRow = ({ item, depth = 0, onEdit, onDelete }) => {
+const IndicatorRow = ({ item, depth = 0, onEdit, onDelete, onRestore }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
+    const isArchived = item.is_archived === true;
 
     return (
         <div className="flex flex-col border-b border-gray-100 last:border-0">
-            <div className="flex items-center hover:bg-gray-50 group py-3 pr-4">
+            <div className={`flex items-center hover:bg-gray-50 group py-3 pr-4 ${isArchived ? 'bg-gray-100/50' : ''}`}>
                 <div
                     className="flex items-center"
                     style={{ paddingLeft: `${depth * 2}rem` }}
@@ -28,28 +29,47 @@ const IndicatorRow = ({ item, depth = 0, onEdit, onDelete }) => {
                     ) : (
                         <div className="w-6 mr-1" />
                     )}
-                    <span className="text-sm font-medium text-gray-400 w-16 mr-2">
+                    <span className={`text-sm font-medium w-16 mr-2 ${isArchived ? 'text-gray-400' : 'text-gray-600'}`}>
                         {item.sequence || '-'}
                     </span>
                 </div>
 
-                <div className="flex-1 text-sm text-gray-700">
+                <div className={`flex-1 text-sm ${isArchived ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
                     {item.indicator_name}
+                    {isArchived && (
+                        <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                            Archived
+                        </span>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => onEdit(item)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => onDelete(item.id)}
-                        className="text-red-600 hover:text-red-900"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                    {isArchived ? (
+                        <button
+                            onClick={() => onRestore(item.id)}
+                            className="text-green-600 hover:text-green-900 mr-3"
+                            title="กู้คืน"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => onEdit(item)}
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => onDelete(item.id)}
+                                className="text-red-600 hover:text-red-900"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -62,6 +82,7 @@ const IndicatorRow = ({ item, depth = 0, onEdit, onDelete }) => {
                             depth={depth + 1}
                             onEdit={onEdit}
                             onDelete={onDelete}
+                            onRestore={onRestore}
                         />
                     ))}
                 </div>
@@ -70,7 +91,7 @@ const IndicatorRow = ({ item, depth = 0, onEdit, onDelete }) => {
     );
 };
 
-export default function MasterIndicatorsTable({ items, components, onEdit, onDelete, onAdd }) {
+export default function MasterIndicatorsTable({ items, components, onEdit, onDelete, onAdd, onRestore }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedComponents, setExpandedComponents] = useState({});
 
@@ -183,6 +204,7 @@ export default function MasterIndicatorsTable({ items, components, onEdit, onDel
                                                 item={node}
                                                 onEdit={onEdit}
                                                 onDelete={onDelete}
+                                                onRestore={onRestore}
                                             />
                                         ))
                                     ) : (
