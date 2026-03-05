@@ -315,7 +315,15 @@ export class ESARGenerator {
         this.renderOverallSummary();
         this.addPage();
         this.renderSWOT();
-        this.components.forEach(component => {
+        
+        // Sort components by component_id before rendering
+        const sortedComponents = [...this.components].sort((a, b) => {
+            const idA = parseInt(a.component_id || a.id || 0);
+            const idB = parseInt(b.component_id || b.id || 0);
+            return idA - idB;
+        });
+        
+        sortedComponents.forEach(component => {
             if (component) {
                 this.addPage();
                 this.renderComponentSection(component);
@@ -394,7 +402,14 @@ export class ESARGenerator {
             return valid.length > 0 ? (valid.reduce((a, b) => a + b, 0) / valid.length) : null;
         };
 
-        this.components.forEach((component, idx) => {
+        // Sort components by component_id
+        const sortedComponents = [...this.components].sort((a, b) => {
+            const idA = parseInt(a.component_id || a.id || 0);
+            const idB = parseInt(b.component_id || b.id || 0);
+            return idA - idB;
+        });
+
+        sortedComponents.forEach((component) => {
             const compIndicators = this.indicators.filter(ind =>
                 String(ind.component_id) === String(component.id) ||
                 String(ind.component_id) === String(component.component_id)
@@ -405,7 +420,7 @@ export class ESARGenerator {
             const commScore = getAvgScore(compIndicators, commMap, 'committee_score');
 
             tableData.push([
-                idx + 1,
+                component.component_id || component.id || '-',
                 component.quality_name,
                 targetScore !== null ? targetScore.toFixed(2) : '-',
                 selfScore !== null ? selfScore.toFixed(2) : '-',
@@ -453,7 +468,8 @@ export class ESARGenerator {
     }
 
     renderComponentSection(component) {
-        this.addTitle(`องค์ประกอบที่ ${component.quality_code || ''} ${component.quality_name}`, 15);
+        const componentNumber = component.component_id || component.id || '';
+        this.addTitle(`องค์ประกอบที่ ${componentNumber} ${component.quality_name}`, 15);
         this.currentY += 5;
 
         const compIndicators = this.indicators.filter(ind =>
