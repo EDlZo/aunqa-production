@@ -160,7 +160,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[95vh]">
                 <div className="px-8 py-5 bg-gray-50/50 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-600 rounded-xl">
+                        <div className="p-2 bg-blue-600 rounded-xl">
                             <List className="w-5 h-5 text-white" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900">
@@ -196,7 +196,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">องค์ประกอบ</label>
                                 <select
                                     required
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                     value={formData.component_id}
                                     onChange={(e) => setFormData({ ...formData, component_id: e.target.value })}
                                 >
@@ -213,7 +213,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
                                     value={formData.sequence}
                                     onChange={(e) => setFormData({ ...formData, sequence: e.target.value })}
                                     placeholder="เช่น 1 หรือ 1.1"
@@ -225,7 +225,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                             <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">ชื่อตัวบ่งชี้ / รายละเอียด</label>
                             <textarea
                                 required
-                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm min-h-[80px]"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm min-h-[80px]"
                                 value={formData.indicator_name}
                                 onChange={(e) => setFormData({ ...formData, indicator_name: e.target.value })}
                                 placeholder="ระบุรายละเอียดตัวบ่งชี้..."
@@ -236,7 +236,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">ประเภท</label>
                                 <select
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
                                     value={formData.indicator_type}
                                     onChange={(e) => setFormData({ ...formData, indicator_type: e.target.value })}
                                 >
@@ -247,12 +247,11 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">เกณฑ์</label>
                                 <select
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
                                     value={formData.criteria_type}
                                     onChange={(e) => setFormData({ ...formData, criteria_type: e.target.value })}
                                 >
                                     <option value="AUN-QA">AUN-QA</option>
-                                    <option value="KPI">KPI</option>
                                     <option value="Other">อื่นๆ</option>
                                 </select>
                             </div>
@@ -263,12 +262,12 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                     {!formData.parent_id && (
                         <div className="space-y-4 pt-2">
                             {item?.id && componentIndicators.filter(i => i.parent_id === item.id).length > 0 && (
-                                <div className="bg-indigo-50/30 border border-indigo-100 p-4 rounded-2xl">
-                                    <h4 className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-2">Existing Sub-indicators ({componentIndicators.filter(i => i.parent_id === item.id).length})</h4>
+                                <div className="bg-blue-50/30 border border-blue-100 p-4 rounded-2xl">
+                                    <h4 className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-2">Existing Sub-indicators ({componentIndicators.filter(i => i.parent_id === item.id).length})</h4>
                                     <div className="space-y-1">
                                         {componentIndicators.filter(i => i.parent_id === item.id).map(sib => (
                                             <div key={sib.id} className="text-xs text-gray-600 flex items-start gap-2">
-                                                <span className="font-bold text-indigo-400">
+                                                <span className="font-bold text-blue-400">
                                                     {sib.sequence ? sib.sequence.split('.').map(p => parseInt(p, 10)).join('.') : '-'}
                                                 </span>
                                                 <span className="truncate">{sib.indicator_name}</span>
@@ -280,13 +279,13 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
 
                             <div className="flex items-center justify-between ml-1">
                                 <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                                    <Plus className="w-4 h-4 text-indigo-500" />
+                                    <Plus className="w-4 h-4 text-blue-500" />
                                     {item?.id ? 'เพิ่มหัวข้อย่อยเพิ่มเติม' : 'เพิ่มหัวข้อย่อยพร้อมกัน (เลือกได้หลายข้อ)'}
                                 </h4>
                                 <button
                                     type="button"
                                     onClick={addSubItem}
-                                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-2xl transition-all"
+                                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-2xl transition-all"
                                 >
                                     + เพิ่มรายการ
                                 </button>
@@ -298,14 +297,14 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                                         <div key={index} className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
                                             <input
                                                 type="text"
-                                                className="w-24 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                className="w-24 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                                 value={si.sequence}
                                                 onChange={(e) => updateSubItem(index, 'sequence', e.target.value)}
                                                 placeholder="ลำดับ"
                                             />
                                             <input
                                                 type="text"
-                                                className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                                                className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-blue-500 outline-none"
                                                 value={si.indicator_name}
                                                 onChange={(e) => updateSubItem(index, 'indicator_name', e.target.value)}
                                                 placeholder="ชื่อตัวบ่งชี้ย่อย..."
@@ -334,7 +333,7 @@ export default function MasterIndicatorForm({ item, components, programs, rounds
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95 flex items-center justify-center gap-2"
+                            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center justify-center gap-2"
                         >
                             <Save className="w-5 h-5" />
                             {item?.id ? 'บันทึกการแก้ไข' : (subItems.length > 0 ? `บันทึกทั้งหมด (${subItems.length + 1})` : 'สร้างข้อมูล')}

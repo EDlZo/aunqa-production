@@ -51,12 +51,27 @@ export default function App() {
         setCurrentUser(parsed);
         setActiveTab('about');
       }
+    } catch { }
+  }, []);
+
+  // Restore selected program from localStorage (separate effect)
+  useEffect(() => {
+    try {
       const sel = localStorage.getItem('selectedProgramContext');
       if (sel) {
-        try { setSelectedProgram(JSON.parse(sel)); } catch { }
+        setSelectedProgram(JSON.parse(sel));
       }
     } catch { }
   }, []);
+
+  // Save selected program to localStorage whenever it changes
+  useEffect(() => {
+    if (selectedProgram) {
+      try {
+        localStorage.setItem('selectedProgramContext', JSON.stringify(selectedProgram));
+      } catch { }
+    }
+  }, [selectedProgram]);
 
   // เลื่อนหน้าต่างกลับไปบนสุดเสมอเมื่อสลับเมนู/แท็บ
   useEffect(() => {
@@ -186,15 +201,10 @@ export default function App() {
       case 'assessment_evaluation':
       case 'assessment_table':
       case 'database_management':
-      case 'dashboard': // User requested dashboard to be restricted too
-        // Special case: System Admin or QA Admin might still want to see things?
-        // Usually Admins create rounds, so if they haven't created one, they probably know why.
-        // But let's stick to the rule: No Active Round = Block these pages.
-        // Unless we want to allow Admins to "Preview"? 
-        // For now, block everyone to enforce "Not Assessment Period".
-        // UPDATE: User requested System Admin to always see these pages.
-
-        if (!loadingRound && !activeRound && currentUser?.role !== 'system_admin') {
+      case 'dashboard':
+      case 'reports':
+        // Block all users including System Admin when no active round
+        if (!loadingRound && !activeRound) {
           return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -216,8 +226,6 @@ export default function App() {
             </div>
           );
         }
-        // Fallthrough to normal rendering for these cases (using a second switch or if/else blocks inside)
-        // Since we can't fallthrough effectively in React return, we handle specific cases below.
         break;
 
       default:

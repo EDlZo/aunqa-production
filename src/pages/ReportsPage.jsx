@@ -5,7 +5,7 @@ import {
   FileText, Download, Save, School,
   LayoutDashboard, PieChart, BookOpen,
   CheckCircle, AlertCircle, TrendingUp,
-  Printer, RefreshCw, ChevronRight, FileSpreadsheet
+  Printer, RefreshCw, ChevronRight, FileSpreadsheet, CalendarX, Settings
 } from 'lucide-react';
 import { generateAssessmentPDF, downloadPDF } from '../utils/pdfGenerator';
 import { ESARGenerator } from '../utils/esarGenerator';
@@ -13,7 +13,7 @@ import { BASE_URL } from '../config/api.js';
 import { useModal } from '../context/ModalContext';
 import ProgramSelection from '../components/ProgramSelection';
 
-export default function ReportsPage() {
+export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const { showAlert } = useModal();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -21,6 +21,8 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear() + 543);
   const [rounds, setRounds] = useState([]);
+  const [activeRound, setActiveRound] = useState(null);
+  const [loadingRound, setLoadingRound] = useState(true);
 
   // Independent Data States
   const [esarData, setEsarData] = useState({
@@ -58,15 +60,18 @@ export default function ReportsPage() {
 
   const fetchRounds = async () => {
     try {
-      const res = await fetch('/api/rounds');
+      const res = await fetch(`${BASE_URL}/api/rounds`);
       if (res.ok) {
         const data = await res.json();
         setRounds(data);
         const active = data.find(r => r.is_active);
+        setActiveRound(active || null);
         if (active) setSelectedYear(active.year);
       }
     } catch (error) {
       console.error('Failed to load rounds', error);
+    } finally {
+      setLoadingRound(false);
     }
   };
 
@@ -564,6 +569,40 @@ export default function ReportsPage() {
 
     </div>
   );
+
+  // Check for active round first
+  if (!loadingRound && !activeRound) {
+    // Get current user from localStorage to check role
+    let currentUserRole = null;
+    try {
+      const saved = localStorage.getItem('currentUser');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        currentUserRole = parsed.role;
+      }
+    } catch { }
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+          <CalendarX className="w-12 h-12 text-gray-400" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">ยังไม่อยู่ในช่วงเวลาการประเมิน</h2>
+        <p className="text-gray-500 max-w-md mb-8">
+          ระบบยังไม่เปิดรับการประเมินในขณะนี้ กรุณาตรวจสอบกำหนดการหรือติดต่อผู้ดูแลระบบ
+        </p>
+        {['system_admin', 'qa_admin'].includes(currentUserRole) && setAppActiveTab && (
+          <button
+            onClick={() => setAppActiveTab('round_management')}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-colors shadow-lg"
+          >
+            <Settings className="w-5 h-5" />
+            จัดการรอบประเมิน (สำหรับผู้ดูแล)
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (!selectedProgram) {
     return (
