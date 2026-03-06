@@ -884,7 +884,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               {['system_admin', 'external_evaluator'].includes(currentUser?.role) ? (
                                 <button
                                   onClick={() => setEvaluatingIndicator(ind)}
-                                  className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all whitespace-nowrap ${hasCommitteeScore
+                                  className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg shadow-sm transition-all whitespace-nowrap ${hasCommitteeScore
                                     ? 'bg-green-600 text-white hover:bg-green-700'
                                     : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
@@ -895,7 +895,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               ) : (
                                 <button
                                   onClick={() => setEvaluatingIndicator(ind)}
-                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap"
+                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap"
                                 >
                                   <Search className="w-3.5 h-3.5 mr-1" />
                                   รายละเอียด

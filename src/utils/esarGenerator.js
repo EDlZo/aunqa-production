@@ -315,14 +315,14 @@ export class ESARGenerator {
         this.renderOverallSummary();
         this.addPage();
         this.renderSWOT();
-        
+
         // Sort components by component_id before rendering
         const sortedComponents = [...this.components].sort((a, b) => {
             const idA = parseInt(a.component_id || a.id || 0);
             const idB = parseInt(b.component_id || b.id || 0);
             return idA - idB;
         });
-        
+
         sortedComponents.forEach(component => {
             if (component) {
                 this.addPage();
@@ -360,8 +360,11 @@ export class ESARGenerator {
 
     renderCoverPage() {
         this.currentY = 40;
-        this.addTitle('รายงานการประเมินตนเอง (Self-Assessment Report: SAR)', 22);
-        this.addTitle('ตามเกณฑ์ AUN-QA (ASEAN University Network-Quality Assurance)', 16);
+        this.addTitle('รายงานการประเมินตนเอง', 22);
+        this.addTitle('(Self-Assessment Report: SAR)', 18);
+        this.currentY += 5;
+        this.addTitle('ตามเกณฑ์ AUN-QA', 16);
+        this.addTitle('(ASEAN University Network-Quality Assurance)', 14);
         this.currentY += 20;
         this.addTitle('ระดับหลักสูตร', 18);
         this.addTitle(this.program.degreeName || this.program.majorName || '', 20);
@@ -578,7 +581,7 @@ export class ESARGenerator {
         this.currentY = this.doc.lastAutoTable.finalY + 15;
         const evidenceList = [];
         const evidenceLinks = []; // Store links for later
-        
+
         compIndicators.forEach(ind => {
             const evalData = this.evaluations.find(e => String(e.indicator_id) === String(ind.id));
             if (evalData && evalData.evidence_meta_json) {
@@ -593,21 +596,21 @@ export class ESARGenerator {
                 } catch (e) { }
             }
         });
-        
+
         if (evidenceList.length > 0) {
             if (this.currentY + 20 > this.safeBottom) this.addPage();
-            this.doc.setFontSize(12); 
-            this.setFontSafe(); 
-            this.doc.text('รายการหลักฐานอ้างอิง:', this.margin, this.currentY); 
+            this.doc.setFontSize(12);
+            this.setFontSafe();
+            this.doc.text('รายการหลักฐานอ้างอิง:', this.margin, this.currentY);
             this.currentY += 5;
-            
+
             autoTable(this.doc, {
-                head: [['ตัวบ่งชี้', 'ชื่อเอกสารหลักฐาน']], 
-                body: evidenceList, 
-                startY: this.currentY, 
+                head: [['ตัวบ่งชี้', 'ชื่อเอกสารหลักฐาน']],
+                body: evidenceList,
+                startY: this.currentY,
                 theme: 'striped',
-                styles: { font: this.fontFamily, fontSize: 9, fontStyle: 'normal' }, 
-                headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'normal' }, 
+                styles: { font: this.fontFamily, fontSize: 9, fontStyle: 'normal' },
+                headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'normal' },
                 columnStyles: {
                     1: { textColor: [37, 99, 235] } // Blue color for links
                 },
@@ -616,7 +619,7 @@ export class ESARGenerator {
                     if (data.section === 'body' && data.column.index === 1) {
                         const rowIndex = data.row.index;
                         const url = evidenceLinks[rowIndex];
-                        
+
                         if (url) {
                             // Add underline to indicate it's a link
                             const textWidth = this.doc.getTextWidth(data.cell.text[0] || '');
@@ -628,7 +631,7 @@ export class ESARGenerator {
                                 data.cell.x + 2 + textWidth,
                                 data.cell.y + data.cell.height - 2
                             );
-                            
+
                             // Add clickable link
                             this.doc.link(
                                 data.cell.x,

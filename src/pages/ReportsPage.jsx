@@ -268,7 +268,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex flex-col">
-            <h3 className="text-lg font-bold text-gray-800">สถานะรายหมวด (องค์ประกอบ {components.length})</h3>
+            <h3 className="text-lg font-bold text-gray-800">สถานะรายหมวด</h3>
             <span className="text-sm text-gray-500 font-medium">สาขา: {majorName || 'ยังไม่ได้เลือกสาขา'}</span>
           </div>
           <div className="flex gap-2">

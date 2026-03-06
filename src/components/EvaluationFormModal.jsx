@@ -746,7 +746,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 bg-gray-200 text-gray-800 font-bold rounded hover:bg-gray-300 transition-colors flex-1"
+              className="px-6 py-2 bg-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-300 transition-colors flex-1"
             >
               {readOnly ? 'ปิด' : 'ยกเลิก'}
             </button>
@@ -758,14 +758,14 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                   <button
                     type="button"
                     onClick={() => onReject(evaluationHistory[0].id || evaluationHistory[0]._id)}
-                    className="px-6 py-2 bg-rose-600 text-white font-bold rounded hover:bg-rose-700 transition-colors flex-1"
+                    className="px-6 py-2 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-colors flex-1"
                   >
                     ส่งกลับแก้ไข
                   </button>
                   <button
                     type="button"
                     onClick={() => onApprove(evaluationHistory[0].id || evaluationHistory[0]._id)}
-                    className="px-6 py-2 bg-emerald-600 text-white font-bold rounded hover:bg-emerald-700 transition-colors flex-1"
+                    className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors flex-1"
                   >
                     อนุมัติ
                   </button>
@@ -776,7 +776,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
               <button
                 type="submit"
                 disabled={loading || !operationResult}
-                className="px-6 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700 disabled:opacity-50 transition-colors flex-1"
+                className="px-6 py-2 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors flex-1"
               >
                 {loading ? 'กำลังบันทึก...' : 'บันทึกผลการดำเนินงาน'}
               </button>

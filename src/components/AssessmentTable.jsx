@@ -193,7 +193,14 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
         readOnly={readOnly}
         currentUser={currentUser}
         onApprove={(id) => {
-          updateStatus(id, 'approve').then(() => handleAssessmentComplete());
+          showConfirm({
+            title: 'ยืนยันการอนุมัติ',
+            message: 'คุณต้องการอนุมัติผลการดำเนินงานนี้ใช่หรือไม่?',
+            type: 'success',
+            onConfirm: () => {
+              updateStatus(id, 'approve').then(() => handleAssessmentComplete());
+            }
+          });
         }}
         onReject={(id) => {
           showPrompt({
@@ -380,7 +387,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                 {canRecordOrEdit && (
                                   <button
                                     onClick={() => handleAssessClick(indicator)}
-                                    className="text-xs px-3 py-1.5 rounded transition bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    className="text-xs px-3 py-1.5 rounded-lg transition bg-gray-100 text-gray-700 hover:bg-gray-200"
                                   >
                                     {evalData ? 'แก้ไขข้อมูล' : 'บันทึกข้อมูล'}
                                   </button>
@@ -388,7 +395,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                 {canReview && (
                                   <button
                                     onClick={() => handleAssessClick(indicator)}
-                                    className="text-xs px-3 py-1.5 rounded transition bg-blue-600 text-white hover:bg-blue-700 font-bold w-full"
+                                    className="text-xs px-3 py-1.5 rounded-lg transition bg-blue-600 text-white hover:bg-blue-700 font-bold w-full"
                                   >
                                     ตรวจสอบ
                                   </button>
@@ -396,7 +403,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                 {canViewOnly && (
                                   <button
                                     onClick={() => handleAssessClick(indicator)}
-                                    className="text-xs px-3 py-1.5 rounded transition bg-gray-50 text-blue-600 border border-blue-100 hover:bg-blue-50"
+                                    className="text-xs px-3 py-1.5 rounded-lg transition bg-gray-50 text-blue-600 border border-blue-100 hover:bg-blue-50"
                                   >
                                     ดูข้อมูล
                                   </button>
@@ -409,7 +416,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                               <button
                                 onClick={() => handleAssessClick(indicator)}
                                 disabled={!canManageCriteria}
-                                className={`text-xs px-3 py-1.5 rounded transition ${!canManageCriteria
+                                className={`text-xs px-3 py-1.5 rounded-lg transition ${!canManageCriteria
                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                   }`}
@@ -428,7 +435,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                       if (evalId) updateStatus(evalId, 'submit');
                                       else showAlert({ title: 'ข้อผิดพลาด', message: 'ไม่พบรหัสการประเมิน กรุณารีเฟรชหน้าเว็บ', type: 'error' });
                                     }}
-                                    className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                   >
                                     ส่งตรวจประเมิน
                                   </button>

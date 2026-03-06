@@ -835,7 +835,7 @@ export default function SummaryPage({ currentUser }) {
                         <td className="px-6 py-4 text-center">
                           <button
                             onClick={() => openIndicatorDetail(ind)}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors whitespace-nowrap"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors whitespace-nowrap"
                           >
                             ดูรายละเอียด
                           </button>
