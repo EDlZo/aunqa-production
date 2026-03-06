@@ -85,15 +85,26 @@ export default function ProgramSelection({
   }, [faculties, selectedLevelId]);
 
   const majorsForSelectedFaculty = useMemo(() => {
-    if (!selectedFacultyId || !selectedLevelId) return [];
-    return programs
-      .filter(p => String(p.facultyId) === String(selectedFacultyId) && String(p.levelId) === String(selectedLevelId))
-      .map(p => ({
-        id: p.id,
-        majorId: p.majorId,
-        name: p.majorName
-      }));
-  }, [programs, selectedFacultyId, selectedLevelId]);
+    if (!selectedFacultyId) return [];
+
+    // Filter programs strictly by facultyId
+    // We use a Map to ensure unique major names if they were duplicated in legacy data
+    const uniqueMajors = new Map();
+
+    programs
+      .filter(p => String(p.facultyId) === String(selectedFacultyId))
+      .forEach(p => {
+        if (!uniqueMajors.has(p.majorName)) {
+          uniqueMajors.set(p.majorName, {
+            id: p.id,
+            majorId: p.majorId,
+            name: p.majorName
+          });
+        }
+      });
+
+    return Array.from(uniqueMajors.values());
+  }, [programs, selectedFacultyId]);
 
   const selectedMajor = useMemo(
     () => majorsForSelectedFaculty.find(m => m.id === selectedMajorId) || null,

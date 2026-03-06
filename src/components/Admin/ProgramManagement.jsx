@@ -27,7 +27,6 @@ export default function ProgramManagement({ setActiveTab }) {
     const [facultyForm, setFacultyForm] = useState({ name: '' });
     const [programForm, setProgramForm] = useState({
         majorName: '',
-        levelId: '',
         facultyId: ''
     });
 
@@ -64,7 +63,6 @@ export default function ProgramManagement({ setActiveTab }) {
         } else if (activeSubTab === 'programs') {
             setProgramForm({
                 majorName: item?.majorName || '',
-                levelId: item?.levelId || '',
                 facultyId: item?.facultyId || ''
             });
         }
@@ -209,7 +207,6 @@ export default function ProgramManagement({ setActiveTab }) {
                                 <>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อสาขา</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">คณะ</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ระดับ</th>
                                 </>
                             )}
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
@@ -236,16 +233,6 @@ export default function ProgramManagement({ setActiveTab }) {
                                                         return <span className="text-red-500" title="ลบไปแล้ว">{item.facultyName || 'ไม่พบข้อมูลคณะ'} (!)</span>;
                                                     }
                                                     return item.facultyName || '-';
-                                                })()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {(() => {
-                                                    const level = levels.find(l => l.id === item.levelId);
-                                                    if (level) return level.name;
-                                                    if (item.levelId) {
-                                                        return <span className="text-red-500" title="ลบไปแล้ว">{item.levelName || 'ไม่พบข้อมูลระดับ'} (!)</span>;
-                                                    }
-                                                    return '-';
                                                 })()}
                                             </td>
                                         </>
@@ -336,18 +323,6 @@ export default function ProgramManagement({ setActiveTab }) {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-blue-500">ระดับ</label>
-                                                <select
-                                                    className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
-                                                    required
-                                                    value={programForm.levelId}
-                                                    onChange={(e) => setProgramForm({ ...programForm, levelId: e.target.value })}
-                                                >
-                                                    <option value="">-- เลือกระดับ --</option>
-                                                    {levels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
                                                 <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1 text-blue-500">คณะ</label>
                                                 <select
                                                     className="w-full px-4 py-2.5 bg-white border border-blue-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
@@ -384,6 +359,6 @@ export default function ProgramManagement({ setActiveTab }) {
                     </div>
                 </div>
             )}
-        </div >
+        </div>
     );
 }
