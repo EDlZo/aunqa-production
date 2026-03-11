@@ -579,7 +579,7 @@ export default function SummaryPage({ currentUser }) {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="block w-full px-4 py-3 rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 text-base"
+                className="block w-full px-4 py-3 rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 text-base text-left"
               >
                 {rounds.map(r => (
                   <option key={r.id} value={r.year}>

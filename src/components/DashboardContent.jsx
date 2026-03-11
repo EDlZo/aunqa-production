@@ -47,26 +47,15 @@ export default function DashboardContent({ user }) {
   const [rounds, setRounds] = useState([]);
   const [selectedYear, setSelectedYear] = useState('');
 
-  // Load selected program from localStorage on mount
+  // Fetch rounds on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('selectedProgramContext');
-      if (saved) {
-        setSelectedProgram(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error('Failed to load program context', e);
-    }
-
-    // Fetch rounds
-    fetch('/api/rounds')
+    fetch(`${BASE_URL}/api/rounds`)
       .then(res => res.json())
       .then(data => {
         setRounds(data);
         const active = data.find(r => r.is_active);
         if (active) setSelectedYear(active.year);
         else if (data.length > 0) setSelectedYear(data[0].year);
-        else setSelectedYear(''); // No legacy fallback
       })
       .catch(err => console.error('Failed to load rounds', err));
   }, []);
@@ -312,19 +301,49 @@ export default function DashboardContent({ user }) {
 
   if (!selectedProgram) {
     return (
-      <div className="max-w-4xl mx-auto py-12">
+      <div className="max-w-4xl mx-auto py-12 px-4 font-prompt">
         <div className="text-center mb-8">
           <LayoutDashboard className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">กรุณาเลือกสาขาเพื่อต้องการดู Dashboard</p>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard ประเมินคุณภาพการศึกษา</h1>
+          <p className="text-gray-600 mt-2">กรุณาเลือกปีการศึกษาและสาขาที่ต้องการดูผลวิเคราะห์</p>
         </div>
+
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          <ProgramSelection
-            onComplete={(sel) => {
-              setSelectedProgram(sel);
-              try { localStorage.setItem('selectedProgramContext', JSON.stringify(sel)); } catch { }
-            }}
-          />
+          {/* Year Selection Section */}
+          <div className="mb-8 p-6 bg-blue-50/50 rounded-xl border border-blue-100">
+            <label className="block text-sm font-semibold text-gray-700 mb-3 text-left">
+              เลือกปีการศึกษา
+            </label>
+            {!rounds.length ? (
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            ) : (
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="block w-full px-4 py-3 rounded-2xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 text-base text-left"
+              >
+                {rounds.map(r => (
+                  <option key={r.id} value={r.year}>
+                    ปีการศึกษา {r.year} {r.is_active ? '(รอบปัจจุบัน)' : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="border-t border-gray-100 pt-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 text-left">เลือกสาขา / หลักสูตร</h2>
+            <ProgramSelection
+              mode="manage"
+              storageKey="dashboardProgramSelection"
+              buttonText="ดู Dashboard"
+              onComplete={(sel) => {
+                setSelectedProgram(sel);
+                // We keep saving for other context, but NOT for first load of this page anymore
+                try { localStorage.setItem('selectedProgramContext', JSON.stringify(sel)); } catch { }
+              }}
+            />
+          </div>
         </div>
       </div>
     );
