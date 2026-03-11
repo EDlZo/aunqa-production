@@ -254,25 +254,25 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                         const data = await res.json();
                         fetchMasterData();
                         fetchStats();
-                        
+
                         if (data.archived) {
-                            showAlert({ 
-                                title: 'Archive แทนการลบ', 
-                                message: data.message || 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ', 
-                                type: 'info' 
+                            showAlert({
+                                title: 'Archive แทนการลบ',
+                                message: data.message || 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ',
+                                type: 'info'
                             });
                         } else {
                             showAlert({ title: 'สำเร็จ', message: 'ลบข้อมูลสำเร็จ', type: 'success' });
                         }
                     } else {
                         const errorData = await res.json().catch(() => ({}));
-                        showAlert({ 
-                            title: 'ข้อผิดพลาด', 
-                            message: errorData.error || 'ไม่สามารถลบข้อมูลได้', 
-                            type: 'error' 
+                        showAlert({
+                            title: 'ข้อผิดพลาด',
+                            message: errorData.error || 'ไม่สามารถลบข้อมูลได้',
+                            type: 'error'
                         });
                     }
-                } catch (err) { 
+                } catch (err) {
                     console.error('Delete indicator error:', err);
                     showAlert({ title: 'ข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการลบข้อมูล', type: 'error' });
                 }
@@ -287,8 +287,8 @@ export default function DatabaseManagementPage({ setActiveTab }) {
             type: 'confirm',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`${BASE_URL}/api/master-indicators/${id}/restore`, { 
-                        method: 'PATCH' 
+                    const res = await fetch(`${BASE_URL}/api/master-indicators/${id}/restore`, {
+                        method: 'PATCH'
                     });
                     if (res.ok) {
                         fetchMasterData();
@@ -296,10 +296,10 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                         showAlert({ title: 'สำเร็จ', message: 'กู้คืนแม่แบบเรียบร้อยแล้ว', type: 'success' });
                     } else {
                         const errorData = await res.json().catch(() => ({}));
-                        showAlert({ 
-                            title: 'ข้อผิดพลาด', 
-                            message: errorData.error || 'ไม่สามารถกู้คืนได้', 
-                            type: 'error' 
+                        showAlert({
+                            title: 'ข้อผิดพลาด',
+                            message: errorData.error || 'ไม่สามารถกู้คืนได้',
+                            type: 'error'
                         });
                     }
                 } catch (err) {
@@ -391,8 +391,8 @@ export default function DatabaseManagementPage({ setActiveTab }) {
 
 
     const collectionCards = [
-        { id: 'quality_components', label: 'องค์ประกอบคุณภาพ', description: 'กลุ่มคุณภาพและข้อกำหนดหลัก', icon: <Layers className="w-6 h-6" />, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { id: 'indicators', label: 'ตัวบ่งชี้', description: 'ตัวชี้วัดในแต่ละองค์ประกอบ', icon: <Activity className="w-6 h-6" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { id: 'quality_components', statKey: 'master_quality_components', label: 'องค์ประกอบคุณภาพ', description: 'กลุ่มคุณภาพและข้อกำหนดหลัก', icon: <Layers className="w-6 h-6" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { id: 'indicators', statKey: 'master_indicators', label: 'ตัวบ่งชี้', description: 'ตัวชี้วัดในแต่ละองค์ประกอบ', icon: <Activity className="w-6 h-6" />, color: 'text-blue-600', bg: 'bg-blue-50' },
         { id: 'evaluations', label: 'ข้อมูลการเขียน SAR', description: 'ข้อมูลเบื้องต้นและเนื้อหาการประเมิน', icon: <FileText className="w-6 h-6" />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { id: 'evaluations_actual', label: 'รายการประเมิน & ไฟล์', description: 'ผลลัพธ์จริงๆ และไฟล์ประกอบหลักฐาน', icon: <CheckCircle className="w-6 h-6" />, color: 'text-teal-600', bg: 'bg-teal-50' },
         { id: 'committee_evaluations', label: 'การประเมินโดยกรรมการ', description: 'คะแนนและข้อเสนอแนะจากกรรมการ', icon: <Users className="w-6 h-6" />, color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -400,8 +400,6 @@ export default function DatabaseManagementPage({ setActiveTab }) {
     ];
 
     const statCards = [
-        { id: 'total_collections', label: 'คอลเลกชันทั้งหมด', value: '9 รายการ', icon: <Database className="w-5 h-5" /> },
-        { id: 'file_storage', label: 'พื้นที่ใช้งานไฟล์', value: formatBytes(stats.file_storage || 0), icon: <HardDrive className="w-5 h-5" /> },
         { id: 'rounds', label: 'รอบประเมิน', value: `${stats.rounds || 0} ปี`, icon: <RefreshCw className="w-5 h-5" /> },
         { id: 'users', label: 'ผู้ใช้งานในระบบ', value: `${stats.users || 0} คน`, icon: <Users className="w-5 h-5" /> },
     ];
@@ -530,16 +528,16 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {error && (
-                        <div className="col-span-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center mb-2">
+                        <div className="col-span-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center mb-2">
                             <AlertCircle className="w-5 h-5 mr-2" />
                             {error}
                         </div>
                     )}
 
                     {!loading && !error && stats.users === 0 && (
-                        <div className="col-span-4 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-2xl flex items-center mb-2">
+                        <div className="col-span-2 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-2xl flex items-center mb-2">
                             <AlertCircle className="w-5 h-5 mr-2" />
                             คำแนะนำ: หากค่าที่แสดงเป็น 0 ทั้งหมด อาจเกิดจากเซิร์ฟเวอร์ยังไม่ได้ถูกรีสตาร์ทเพื่อเปิดใช้งาน API ใหม่
                         </div>
@@ -573,12 +571,14 @@ export default function DatabaseManagementPage({ setActiveTab }) {
                                         <div className={`p-3 rounded-2xl ${card.bg} ${card.color}`}>
                                             {card.icon}
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-gray-400 uppercase font-medium">Record Count</p>
-                                            <p className="text-2xl font-bold text-gray-900">
-                                                {loading ? '-' : (stats[card.id] || 0)}
-                                            </p>
-                                        </div>
+                                        {card.id !== 'quality_components' && card.id !== 'indicators' && (
+                                            <div className="text-right">
+                                                <p className="text-xs text-gray-400 uppercase font-medium">Record Count</p>
+                                                <p className="text-2xl font-bold text-gray-900">
+                                                    {loading ? '-' : (stats[card.statKey || card.id] || 0)}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                     <h3 className="text-lg font-bold text-gray-900 mb-1">{card.label}</h3>
                                     <p className="text-sm text-gray-500 mb-6">{card.description}</p>

@@ -928,15 +928,15 @@ app.post('/api/master-indicators', async (req, res) => {
         .where('sequence', '==', data.sequence)
         .get();
 
-      console.log('📊 Duplicate check result:', { 
-        isEmpty: duplicateCheck.empty, 
-        count: duplicateCheck.size 
+      console.log('📊 Duplicate check result:', {
+        isEmpty: duplicateCheck.empty,
+        count: duplicateCheck.size
       });
 
       if (!duplicateCheck.empty) {
         console.log('❌ Duplicate found! Returning error...');
-        return res.status(400).json({ 
-          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+        return res.status(400).json({
+          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น`
         });
       }
     }
@@ -972,8 +972,8 @@ app.post('/api/master-indicators/bulk', async (req, res) => {
           .get();
 
         if (!duplicateCheck.empty) {
-          return res.status(400).json({ 
-            error: `ลำดับ "${item.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+          return res.status(400).json({
+            error: `ลำดับ "${item.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น`
           });
         }
       }
@@ -984,8 +984,8 @@ app.post('/api/master-indicators/bulk', async (req, res) => {
     for (const item of items) {
       const key = `${item.component_id}-${item.sequence}`;
       if (sequenceMap.has(key)) {
-        return res.status(400).json({ 
-          error: `ลำดับ "${item.sequence}" ซ้ำกันในรายการที่กำลังเพิ่ม` 
+        return res.status(400).json({
+          error: `ลำดับ "${item.sequence}" ซ้ำกันในรายการที่กำลังเพิ่ม`
         });
       }
       sequenceMap.set(key, true);
@@ -1033,10 +1033,10 @@ app.patch('/api/master-indicators/:id', async (req, res) => {
 
       // Check if any duplicate is NOT the current document being updated
       const hasDuplicate = duplicateCheck.docs.some(doc => doc.id !== id);
-      
+
       if (hasDuplicate) {
-        return res.status(400).json({ 
-          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น` 
+        return res.status(400).json({
+          error: `ลำดับ "${data.sequence}" มีอยู่แล้วในองค์ประกอบนี้ กรุณาใช้ลำดับอื่น`
         });
       }
     }
@@ -1077,10 +1077,10 @@ app.delete('/api/master-indicators/:id', async (req, res) => {
         is_archived: true,
         archived_at: admin.firestore.FieldValue.serverTimestamp()
       });
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         archived: true,
-        message: 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ' 
+        message: 'แม่แบบนี้ถูกใช้งานอยู่ ระบบได้ทำการ Archive แทนการลบ'
       });
     }
 
@@ -1103,7 +1103,7 @@ app.patch('/api/master-indicators/:id/restore', async (req, res) => {
       is_archived: false,
       archived_at: admin.firestore.FieldValue.delete()
     });
-    
+
     res.json({ success: true, message: 'กู้คืนแม่แบบเรียบร้อยแล้ว' });
   } catch (error) {
     console.error('Error restoring master indicator:', error);
@@ -2413,14 +2413,17 @@ app.get('/api/admin/db-stats', async (req, res) => {
         assessment_sessions: 2,
         users: mockData.users?.length || 10,
         rounds: 1,
-        programs: mockData.programs?.length || 2
+        programs: mockData.programs?.length || 2,
+        master_quality_components: 2,
+        master_indicators: 10
       });
     }
 
     const collections = [
       'quality_components', 'indicators', 'evaluations',
       'evaluations_actual', 'committee_evaluations',
-      'assessment_sessions', 'users', 'rounds', 'programs'
+      'assessment_sessions', 'users', 'rounds', 'programs',
+      'master_quality_components', 'master_indicators'
     ];
 
     const stats = {};
