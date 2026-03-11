@@ -12,9 +12,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
 
   // Helper for dynamic component bars
   const defaultComponents = [
-    { name: "การบริหารจัดการเชิงกลยุทธ์", progress: 85, color: "bg-green-500" },
-    { name: "การเรียนการสอน", progress: 92, color: "bg-blue-500" },
-    { name: "การวิจัยและนวัตกรรม", progress: 78, color: "bg-purple-500" }
+
   ];
 
   const displayComponents = publicStats?.topComponents?.length > 0
