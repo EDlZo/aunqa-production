@@ -389,7 +389,7 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                                     onClick={() => handleAssessClick(indicator)}
                                     className="text-xs px-3 py-1.5 rounded-lg transition bg-gray-100 text-gray-700 hover:bg-gray-200"
                                   >
-                                    {evalData ? 'แก้ไขข้อมูล' : 'บันทึกข้อมูล'}
+                                    {evalData ? 'แก้ไขข้อมูล' : 'กรอกข้อมูล'}
                                   </button>
                                 )}
                                 {canReview && (

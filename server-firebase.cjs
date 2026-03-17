@@ -2080,7 +2080,12 @@ app.get('/api/evaluations/history', async (req, res) => {
 // ================= EVALUATIONS ACTUAL =================
 app.post('/api/evaluations-actual', upload.array('evidence_files', 10), async (req, res) => {
   try {
-    const { session_id, indicator_id, operation_result, operation_score, reference_score, goal_achievement, evidence_number, evidence_name, evidence_url, comment, major_name, status, keep_existing, year } = req.body;
+    const { 
+      session_id, indicator_id, operation_result, operation_score, 
+      reference_score, goal_achievement, evidence_number, evidence_name, 
+      evidence_url, comment, major_name, status, keep_existing, year,
+      metadata_overrides // JSON string: { filename: { number, name, url } }
+    } = req.body;
 
     // Check if there is already an approved evaluation for this indicator
     if (db) {
@@ -2101,7 +2106,42 @@ app.post('/api/evaluations-actual', upload.array('evidence_files', 10), async (r
     let evidenceFiles = [];
     let evidenceMeta = {};
 
-    // Handle uploaded files
+    // 1. If keep_existing is true, fetch and merge existing evidence
+    if (keep_existing === 'true') {
+      try {
+        const existingEvals = await getData('evaluationsActual', { session_id, indicator_id, major_name });
+        if (existingEvals && existingEvals.length > 0) {
+          // Sort to find the latest
+          existingEvals.sort((a, b) => {
+            const getT = (v) => v?.created_at?._seconds || v?.created_at?.seconds || 0;
+            return getT(b) - getT(a);
+          });
+          const latest = existingEvals[0];
+          evidenceFiles = JSON.parse(latest.evidence_files_json || '[]');
+          evidenceMeta = JSON.parse(latest.evidence_meta_json || '{}');
+          console.log(`📌 Merging ${evidenceFiles.length} existing files from latest eval`);
+        }
+      } catch (err) {
+        console.error('Error fetching existing eval for merging:', err);
+      }
+    }
+
+    // 2. Apply metadata overrides if provided
+    if (metadata_overrides) {
+      try {
+        const overrides = typeof metadata_overrides === 'string' ? JSON.parse(metadata_overrides) : metadata_overrides;
+        Object.keys(overrides).forEach(filename => {
+          if (evidenceMeta[filename]) {
+            evidenceMeta[filename] = { ...evidenceMeta[filename], ...overrides[filename] };
+            console.log(`✏️ Applied override for ${filename}`);
+          }
+        });
+      } catch (err) {
+        console.error('Error parsing metadata_overrides:', err);
+      }
+    }
+
+    // 3. Handle uploaded files
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
         evidenceFiles.push(file.filename);

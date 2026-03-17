@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Clock,
   ArrowLeft,
-  Upload
+  Upload,
+  Pencil
 } from 'lucide-react';
 import { useModal } from '../context/ModalContext';
 
@@ -43,6 +44,8 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [pendingEvidenceFiles, setPendingEvidenceFiles] = useState([]); // ไฟล์หลักฐานที่ยังไม่ได้บันทึก
+  const [editingEvidence, setEditingEvidence] = useState(null); // { type: 'pending'|'saved', index, filename, data }
+  const [metadataOverrides, setMetadataOverrides] = useState({}); // filename -> { number, name, url }
   const fileInputRef = useRef(null);
 
   // Helper: try relative /api first; if 404, retry against backend port 3001
@@ -354,6 +357,11 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
         formData.append('evidence_urls', JSON.stringify(urls));
       }
 
+      // ส่ง metadata overrides สำหรับไฟล์ที่เคยบันทึกไว้แล้ว
+      if (Object.keys(metadataOverrides).length > 0) {
+        formData.append('metadata_overrides', JSON.stringify(metadataOverrides));
+      }
+
       // multiple files (ไฟล์หลักฐานจาก state เดิม)
       if (Array.isArray(evidenceFiles)) {
         evidenceFiles.forEach((f) => formData.append('evidence_files', f));
@@ -522,14 +530,22 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
       });
     }
 
-    return files.map((f, index) => ({
-      filename: f,
-      meta: meta[f] || {},
-      evidence_number: f.startsWith('pending_') ? meta[f]?.number || '' : (meta[f]?.number || `${index + 1}`),
-      evidence_name: f.startsWith('pending_') ? meta[f]?.name || '' : (meta[f]?.name || evidence_name),
-      evidence_url: f.startsWith('pending_') ? '' : evidence_url,
-      isPending: f.startsWith('pending_')
-    }));
+    return files.map((f, index) => {
+      const isPending = f.startsWith('pending_');
+      const override = metadataOverrides[f];
+      const pendingIndex = isPending ? parseInt(f.match(/pending_(\d+)_/)?.[1] || '0') : -1;
+      const pendingItem = isPending ? pendingEvidenceFiles[pendingIndex] : null;
+      
+      return {
+        filename: f,
+        meta: override || meta[f] || {},
+        evidence_number: override?.number || (isPending ? (meta[f]?.number || '') : (meta[f]?.number || `${index + 1}`)),
+        evidence_name: override?.name || (isPending ? (meta[f]?.name || '') : (meta[f]?.name || evidence_name)),
+        evidence_url: override?.url || (isPending ? '' : (meta[f]?.url || evidence_url)),
+        isPending: isPending,
+        rawPending: pendingItem
+      };
+    });
   })();
 
   return (
@@ -703,13 +719,51 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                         </td>
                         <td className="px-4 py-3 text-center">
                           {!readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => file.isPending ? setPendingEvidenceFiles(prev => prev.filter((_, i) => i !== parseInt(file.filename.match(/pending_(\d+)_/)?.[1] || '0'))) : handleRemoveFile(file.filename)}
-                              className="text-red-400 hover:text-red-600 transition-colors"
-                            >
-                              <X className="w-4 h-4 mx-auto" />
-                            </button>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEvidence({
+                                    type: file.isPending ? 'pending' : 'saved',
+                                    index: file.isPending ? parseInt(file.filename.match(/pending_(\d+)_/)?.[1] || '0') : index,
+                                    filename: file.filename,
+                                    data: file
+                                  });
+                                  setEvidenceNumber(file.evidence_number || '');
+                                  setEvidenceName(file.evidence_name || '');
+                                  setEvidenceUrl(file.meta?.url || file.evidence_url || '');
+                                  
+                                  const isUrl = file.filename.startsWith('url_') || (file.isPending && !file.rawPending?.file);
+                                  setEvidenceType(isUrl ? 'url' : 'file');
+                                  
+                                  // Populate evidenceFiles for display in modal
+                                  if (!isUrl) {
+                                    if (file.isPending && file.rawPending?.file) {
+                                      setEvidenceFiles([file.rawPending.file]);
+                                    } else {
+                                      // For saved items, we don't have the File object but can show the name
+                                      setEvidenceFiles([{ name: file.meta?.name || file.evidence_name || file.filename }]);
+                                    }
+                                  } else {
+                                    setEvidenceFiles([]);
+                                  }
+
+                                  setShowEvidenceModal(true);
+                                }}
+                                className="text-blue-400 hover:text-blue-600 transition-colors"
+                                title="แก้ไข"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => file.isPending ? setPendingEvidenceFiles(prev => prev.filter((_, i) => i !== parseInt(file.filename.match(/pending_(\d+)_/)?.[1] || '0'))) : handleRemoveFile(file.filename)}
+                                className="text-red-400 hover:text-red-600 transition-colors"
+                                title="ลบ"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -865,10 +919,20 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
               <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-blue-600" />
-                เพิ่มรายละเอียดหลักฐาน
+                {editingEvidence ? <Pencil className="w-4 h-4 text-blue-600" /> : <Plus className="w-4 h-4 text-blue-600" />}
+                {editingEvidence ? 'แก้ไขรายละเอียดหลักฐาน' : 'เพิ่มรายละเอียดหลักฐาน'}
               </h4>
-              <button onClick={() => setShowEvidenceModal(false)} className="bg-gray-50 p-1 rounded-full shadow-sm text-gray-400 hover:text-gray-600 transition-colors">
+              <button 
+                onClick={() => {
+                  setShowEvidenceModal(false);
+                  setEditingEvidence(null);
+                  setEvidenceNumber('');
+                  setEvidenceName('');
+                  setEvidenceFiles([]);
+                  setEvidenceUrl('');
+                }} 
+                className="bg-gray-50 p-1 rounded-full shadow-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -973,7 +1037,14 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowEvidenceModal(false)}
+                onClick={() => {
+                  setShowEvidenceModal(false);
+                  setEditingEvidence(null);
+                  setEvidenceNumber('');
+                  setEvidenceName('');
+                  setEvidenceFiles([]);
+                  setEvidenceUrl('');
+                }}
                 className="flex-1 py-2 text-gray-600 font-bold hover:underline"
               >
                 ยกเลิก
@@ -985,7 +1056,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                     showAlert({ title: 'ข้อมูลไม่ครบ', message: 'กรุณากรอกข้อมูลให้ครบถ้วน', type: 'warning' });
                     return;
                   }
-                  if (evidenceType === 'file' && evidenceFiles.length === 0) {
+                  if (evidenceType === 'file' && evidenceFiles.length === 0 && !editingEvidence) {
                     showAlert({ title: 'ไม่ได้เลือกไฟล์', message: 'กรุณาเลือกไฟล์', type: 'warning' });
                     return;
                   }
@@ -994,14 +1065,47 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                     return;
                   }
 
-                  const newEvidence = {
-                    file: evidenceType === 'file' ? evidenceFiles[0] : null,
-                    number: evidenceNumber,
-                    name: evidenceName,
-                    url: evidenceType === 'url' ? evidenceUrl : ''
-                  };
+                  if (editingEvidence) {
+                    if (editingEvidence.type === 'pending') {
+                      setPendingEvidenceFiles(prev => {
+                        const next = [...prev];
+                        next[editingEvidence.index] = {
+                          ...next[editingEvidence.index],
+                          number: evidenceNumber,
+                          name: evidenceName,
+                          url: evidenceType === 'url' ? evidenceUrl : '',
+                          file: (evidenceType === 'file' && evidenceFiles.length > 0) ? evidenceFiles[0] : next[editingEvidence.index].file
+                        };
+                        return next;
+                      });
+                    } else {
+                      // บันทึกการแก้ไขสำหรับไฟล์ที่บันทึกแล้วลงใน overrides
+                      setMetadataOverrides(prev => ({
+                        ...prev,
+                        [editingEvidence.filename]: {
+                          number: evidenceNumber,
+                          name: evidenceName,
+                          url: evidenceType === 'url' ? evidenceUrl : (prev[editingEvidence.filename]?.url || '')
+                        }
+                      }));
 
-                  setPendingEvidenceFiles(prev => [...prev, newEvidence]);
+                      showAlert({
+                        title: 'แก้ไขข้อมูลสำเร็จ',
+                        message: 'การแก้ไขจะมีผลเมื่อคุณกดปุ่ม "บันทึกผลการดำเนินงาน"',
+                        type: 'info'
+                      });
+                    }
+                  } else {
+                    const newEvidence = {
+                      file: evidenceType === 'file' ? evidenceFiles[0] : null,
+                      number: evidenceNumber,
+                      name: evidenceName,
+                      url: evidenceType === 'url' ? evidenceUrl : ''
+                    };
+                    setPendingEvidenceFiles(prev => [...prev, newEvidence]);
+                  }
+                  
+                  setEditingEvidence(null);
                   setEvidenceNumber('');
                   setEvidenceName('');
                   setEvidenceFiles([]);
@@ -1010,7 +1114,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 }}
                 className="flex-1 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors"
               >
-                เพิ่มรายการ
+                {editingEvidence ? 'ตกลง' : 'เพิ่มรายการ'}
               </button>
             </div>
           </div>
