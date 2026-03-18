@@ -4,6 +4,5 @@ dist
 uploads/
 ⠀⠀⠀⠀/
 .git
-.npmrc
 .vercel
 *.log
