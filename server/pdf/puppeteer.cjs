@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+// puppeteer.cjs - Optimized for A4 PDF Print - Supports Vercel Deployment
 const fs = require('fs');
 const path = require('path');
 const { renderTemplate } = require('./render.cjs');
@@ -16,10 +16,25 @@ function loadFontAsBase64(fontPath) {
 async function generatePDF(data) {
     let browser;
     try {
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
+        if (process.env.VERCEL) {
+            // Vercel / Serverless Environment
+            const puppeteerCore = require('puppeteer-core');
+            const chromium = require('@sparticuz/chromium');
+            browser = await puppeteerCore.launch({
+                args: chromium.args,
+                defaultViewport: chromium.defaultViewport,
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
+                ignoreHTTPSErrors: true,
+            });
+        } else {
+            // Local Development
+            const puppeteerLocal = require('puppeteer');
+            browser = await puppeteerLocal.launch({
+                headless: 'new',
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+        }
 
         const page = await browser.newPage();
         const templatePath = path.join(__dirname, 'template.html');
