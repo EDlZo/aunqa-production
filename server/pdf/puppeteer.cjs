@@ -18,20 +18,20 @@ async function generatePDF(data) {
     try {
         if (process.env.VERCEL) {
             // Vercel / Serverless Environment (Node 20+ / Amazon Linux 2023)
+            // Uses chromium-min to avoid 50MB bundle limit — binary downloaded at runtime
             const puppeteerCore = require('puppeteer-core');
-            const chromium = require('@sparticuz/chromium');
-            
-            // Critical for Vercel Node 20+ to bypass missing libnss3.so graphics libraries
+            const chromium = require('@sparticuz/chromium-min');
+
+            // Disable WebGL to avoid missing graphics library errors (libnss3.so etc.)
             chromium.setGraphicsMode = false;
 
             browser = await puppeteerCore.launch({
                 args: chromium.args,
                 defaultViewport: chromium.defaultViewport,
-                // Download a pre-compiled AL2023-compatible binary at runtime
                 executablePath: await chromium.executablePath(
-                    'https://github.com/Sparticuz/chromium/releases/download/v123.0.1/chromium-v123.0.1-pack.tar'
+                    'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
                 ),
-                headless: chromium.headless,
+                headless: 'shell',
                 ignoreHTTPSErrors: true,
             });
         } else {
