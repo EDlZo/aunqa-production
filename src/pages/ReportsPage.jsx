@@ -1,17 +1,17 @@
-// src/pages/ReportsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FileText, Download, Save, School,
   LayoutDashboard, PieChart, BookOpen,
   CheckCircle, AlertCircle, TrendingUp,
-  Printer, RefreshCw, ChevronRight, FileSpreadsheet, CalendarX, Settings
+  RefreshCw, ChevronRight, FileSpreadsheet, CalendarX, Settings,
+  Info
 } from 'lucide-react';
-import { generateAssessmentPDF, downloadPDF } from '../utils/pdfGenerator';
 import { ESARGenerator } from '../utils/esarGenerator';
 import { BASE_URL } from '../config/api.js';
 import { useModal } from '../context/ModalContext';
 import ProgramSelection from '../components/ProgramSelection';
+import RichTextEditor from '../components/RichTextEditor.jsx';
 
 export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const { showAlert } = useModal();
@@ -26,6 +26,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
 
   // Independent Data States
   const [esarData, setEsarData] = useState({
+    universityInfo: '',
+    programInfo: '',
     history: '',
     vision: '',
     mission: '',
@@ -79,6 +81,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
     setEvaluations([]);
     setIndicators([]);
     setEsarData({
+      universityInfo: '',
+      programInfo: '',
       history: '',
       vision: '',
       mission: '',
@@ -90,7 +94,6 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       const qs = new URLSearchParams({
         year: selectedYear,
         major_name: majorName,
-        filter_approved_only: 'true'
       }).toString();
 
       const [metaRes, bulkRes] = await Promise.all([
@@ -100,8 +103,10 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
 
       if (metaRes.ok) {
         const meta = await metaRes.json();
-        if (meta && (meta.history || meta.swot)) {
+        if (meta && meta.id) {
           setEsarData({
+            universityInfo: meta.universityInfo || '',
+            programInfo: meta.programInfo || '',
             history: meta.history || '',
             vision: meta.vision || '',
             mission: meta.mission || '',
@@ -204,22 +209,112 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const handleGenerateFullESAR = async () => {
     try {
       setRefreshing(true);
-      const generator = new ESARGenerator({
-        program: { majorName, ...selectedProgram },
+      
+      // Helper to map an indicator to PDF data
+      const mapIndicator = (ind) => {
+        const evalItem = evaluations.find(e =>
+          String(e.indicator_id) === String(ind.id) ||
+          String(e.indicator_id) === String(ind.indicator_id) ||
+          String(e.indicator_id) === String(ind.sequence)
+        );
+        const criteriaItem = criteria.find(c =>
+          String(c.indicator_id) === String(ind.id) ||
+          String(c.indicator_id) === String(ind.indicator_id) ||
+          String(c.indicator_id) === String(ind.sequence)
+        );
+        const evidenceFiles = JSON.parse(evalItem?.evidence_files_json || '[]');
+        const evidenceMeta = JSON.parse(evalItem?.evidence_meta_json || '{}');
+        const evidenceList = evidenceFiles.map(filename => ({
+          number: evidenceMeta[filename]?.number || '1',
+          name: evidenceMeta[filename]?.name || filename,
+          url: evidenceMeta[filename]?.url || ''
+        }));
+        const selfScore = evalItem?.operation_score ? parseFloat(evalItem.operation_score) : null;
+        const targetScore = criteriaItem?.score ? parseFloat(criteriaItem.score) : null;
+        return {
+          sequence: ind.sequence,
+          indicator_name: ind.indicator_name,
+          display_sequence: (() => {
+            const seq = String(ind.sequence || '').trim();
+            const match = seq.match(/^(\d+)\.0*(\d+)$/);
+            return match ? `${match[1]}.${match[2]}` : seq;
+          })(),
+          evaluation_text: evalItem?.operation_result || evalItem?.evaluation_text || '<i>ยังไม่ได้กรอกข้อมูลผลการดำเนินงาน</i>',
+          score: selfScore,
+          target_score: targetScore,
+          goal_achieved: selfScore !== null && targetScore !== null ? selfScore >= targetScore : false,
+          has_evidence: evidenceList.length > 0,
+          evidence_list: evidenceList
+        };
+      };
+
+      // Group indicators by sequence prefix:
+      // Main criteria: sequence is a plain integer string like "1", "2", "3"
+      // Sub-indicators: sequence like "1.01", "1.02", "2.01"
+      const mainCriteria = indicators
+        .filter(ind => /^\d+$/.test(String(ind.sequence).trim()))
+        .sort((a, b) => parseInt(a.sequence) - parseInt(b.sequence));
+
+      const buildComponents = mainCriteria.map(main => {
+        const prefix = String(main.sequence).trim();
+        // Find matching component record for banner name
+        const comp = components.find(c =>
+          String(c.component_id) === prefix ||
+          String(c.id) === prefix
+        );
+        // Sub-indicators whose sequence starts with "prefix."
+        const subInds = indicators
+          .filter(ind => {
+            const seq = String(ind.sequence).trim();
+            return seq.startsWith(prefix + '.') || seq.startsWith(prefix + ' ');
+          })
+          .sort((a, b) => String(a.sequence).localeCompare(String(b.sequence), undefined, { numeric: true }));
+
+        // Banner: "เกณฑ์คุณภาพที่ N ชื่อ" from main criterion
+        const bannerName = `เกณฑ์คุณภาพที่ ${prefix} ${main.indicator_name}`;
+
+        return {
+          quality_name: bannerName,
+          indicators: subInds.map(mapIndicator)
+        };
+      }).filter(comp => comp.indicators.length > 0);
+
+      // Prepare data for Puppeteer template
+      const reportData = {
+        university_name: 'มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย',
+        faculty_name: selectedProgram?.facultyName || selectedProgram?.faculty_name || '',
+        program_name: majorName,
         year: selectedYear,
-        components,
-        indicators,
-        evaluations,
-        criteria,
-        committeeEvaluations,
-        metadata: esarData // Pass metadata to generator
+        university_info: esarData.universityInfo,
+        program_info: esarData.programInfo,
+        swot_s: esarData.swot?.s || '',
+        swot_w: esarData.swot?.w || '',
+        components: buildComponents
+      };
+
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reportData)
       });
 
-      const doc = await generator.generate();
-      doc.save(`ESAR_Report_${majorName}_${selectedYear}.pdf`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.details || 'การสร้าง PDF ล้มเหลว');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ESAR_Report_${majorName}_${selectedYear}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
     } catch (error) {
-      console.error('Error generating full ESAR:', error);
+      console.error('Error generating PDF via Puppeteer:', error);
       showAlert({ title: 'ข้อผิดพลาด', message: 'เกิดข้อผิดพลาดในการสร้างรายงาน: ' + error.message, type: 'error' });
     } finally {
       setRefreshing(false);
@@ -442,55 +537,31 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
       <h3 className="text-lg font-bold text-gray-800 border-b pb-2">บทที่ 1: โครงร่างองค์กร (Organization Profile)</h3>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">ประวัติความเป็นมา (History)</label>
-        <textarea
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
-          value={esarData.history}
-          onChange={e => setEsarData({ ...esarData, history: e.target.value })}
-          placeholder="ระบุประวัติความเป็นมาของหลักสูตร/คณะ..."
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">วิสัยทัศน์ (Vision)</label>
-          <textarea
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
-            value={esarData.vision}
-            onChange={e => setEsarData({ ...esarData, vision: e.target.value })}
-            placeholder="ระบุวิสัยทัศน์..."
+          <label className="block text-sm font-bold text-gray-700 mb-2">1. ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย</label>
+          <RichTextEditor
+            value={esarData.universityInfo || ''}
+            onChange={val => setEsarData({ ...esarData, universityInfo: val })}
+            placeholder="ระบุข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัย..."
+            minHeight={250}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">พันธกิจ (Mission)</label>
-          <textarea
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
-            value={esarData.mission}
-            onChange={e => setEsarData({ ...esarData, mission: e.target.value })}
-            placeholder="ระบุพันธกิจ..."
+          <label className="block text-sm font-bold text-gray-700 mb-2">2. ข้อมูลทั่วไปเกี่ยวกับหลักสูตร</label>
+          <RichTextEditor
+            value={esarData.programInfo || ''}
+            onChange={val => setEsarData({ ...esarData, programInfo: val })}
+            placeholder="ระบุข้อมูลทั่วไปเกี่ยวกับหลักสูตร..."
+            minHeight={250}
           />
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">โครงสร้างการบริหาร (Organization Structure)</label>
-        <textarea
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none"
-          value={esarData.structure}
-          onChange={e => setEsarData({ ...esarData, structure: e.target.value })}
-          placeholder="อธิบายโครงสร้างการบริหาร..."
-        />
       </div>
 
       <div className="flex justify-end pt-4">
         <button
           onClick={handleSaveMetadata}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition shadow-md"
           disabled={refreshing}
         >
           <Save className="w-4 h-4 mr-2" />
@@ -509,12 +580,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           <label className="flex items-center text-green-800 font-bold mb-2">
             <CheckCircle className="w-5 h-5 mr-2" /> จุดแข็ง (Strengths)
           </label>
-          <textarea
-            rows={10}
-            className="w-full px-3 py-2 bg-white border border-green-200 rounded-2xl focus:ring-2 focus:ring-green-500 outline-none"
-            value={esarData.swot.s}
-            onChange={e => setEsarData({ ...esarData, swot: { ...esarData.swot, s: e.target.value } })}
+          <RichTextEditor
+            value={esarData.swot.s || ''}
+            onChange={val => setEsarData({ ...esarData, swot: { ...esarData.swot, s: val } })}
             placeholder="ระบุจุดแข็งของหลักสูตร..."
+            minHeight={300}
           />
         </div>
 
@@ -522,12 +592,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           <label className="flex items-center text-red-800 font-bold mb-2">
             <AlertCircle className="w-5 h-5 mr-2" /> จุดควรพัฒนา (Areas for Improvement)
           </label>
-          <textarea
-            rows={10}
-            className="w-full px-3 py-2 bg-white border border-red-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none"
-            value={esarData.swot.w}
-            onChange={e => setEsarData({ ...esarData, swot: { ...esarData.swot, w: e.target.value } })}
+          <RichTextEditor
+            value={esarData.swot.w || ''}
+            onChange={val => setEsarData({ ...esarData, swot: { ...esarData.swot, w: val } })}
             placeholder="ระบุจุดที่ควรปรับปรุง..."
+            minHeight={300}
           />
         </div>
       </div>

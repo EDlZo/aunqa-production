@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานการประเมินคุณภาพการศึกษาภายใน</title>
+</head>
+<body>
+
+    <!-- COVER PAGE -->
+    <section class="cover-page">
+        {{#logo_url}}
+        <img src="{{logo_url}}" class="cover-logo" alt="logo">
+        {{/logo_url}}
+        <h1 class="cover-title">รายงานการประเมินคุณภาพการศึกษาภายในหลักสูตร</h1>
+        <h2 class="cover-subtitle">{{program_name}}</h2>
+        <h2 class="cover-subtitle">ปีการศึกษา {{year}}</h2>
+        <div class="cover-info">
+            <p>{{faculty_name}}</p>
+            <p>{{university_name}}</p>
+        </div>
+    </section>
+
+    <!-- CHAPTER 1: General Info -->
+    <section class="chapter">
+        <div class="chapter-banner">ส่วนที่ 1 : ข้อมูลทั่วไป</div>
+        <div class="section-highlight">ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย</div>
+        <div class="rich-content">{{{university_info}}}</div>
+        <div class="section-highlight">ข้อมูลทั่วไปเกี่ยวกับหลักสูตร</div>
+        <div class="rich-content">{{{program_info}}}</div>
+    </section>
+
+    <!-- CHAPTER 2: AUN-QA Performance -->
+    <section class="chapter">
+        <div class="chapter-banner">ส่วนที่ 2 : ผลการดำเนินงานตามเกณฑ์ AUN-QA</div>
+
+        {{#components}}
+        <div class="component-section">
+
+            <!-- ชื่อเกณฑ์หลัก เช่น "เกณฑ์คุณภาพที่ 1 ..." -->
+            <div class="component-heading">{{quality_name}}</div>
+
+            <!-- รายชื่อตัวบ่งชี้ทั้งหมด (ข้อรอง) -->
+            <div class="indicator-list">
+                {{#indicators}}
+                <div class="indicator-heading">{{sequence}} {{indicator_name}}</div>
+                {{/indicators}}
+            </div>
+
+            <!-- ตารางผลดำเนินงาน (1 คอลัมน์) -->
+            <div class="content-table-wrapper">
+            <table class="content-table">
+                <thead>
+                    <tr>
+                        <th>ผลการดำเนินงาน</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#indicators}}
+                    <tr>
+                        <td>
+                            <div class="row-content-wrap">
+                            <span class="row-indicator-label">{{display_sequence}}&nbsp;&nbsp;</span>
+                            {{#has_sub_criteria}}
+                            <table class="sub-criteria-table">
+                                <tbody>
+                                    {{#sub_criteria_list}}
+                                    <tr>
+                                        <td class="sub-num">{{num}}</td>
+                                        <td class="sub-text">{{text}}</td>
+                                    </tr>
+                                    {{/sub_criteria_list}}
+                                </tbody>
+                            </table>
+                            {{/has_sub_criteria}}
+                            <div class="rich-content">{{{evaluation_text}}}</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {{/indicators}}
+                </tbody>
+            </table>
+            </div>
+
+            <!-- ตารางหลักฐาน -->
+            {{#has_any_evidence}}
+            <table class="evidence-table">
+                <thead>
+                    <tr>
+                        <th class="ev-col-num">ลำดับ</th>
+                        <th class="ev-col-name">ชื่อหลักฐาน</th>
+                        <th class="ev-col-link">หลักฐาน/ตารางอ้างอิง</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#all_evidence}}
+                    <tr>
+                        <td class="ev-col-num">{{number}}</td>
+                        <td class="ev-col-name">{{name}}</td>
+                        <td class="ev-col-link">
+                            {{#url}}<a href="{{url}}" class="evidence-link">{{url}}</a>{{/url}}
+                            {{^url}}-{{/url}}
+                        </td>
+                    </tr>
+                    {{/all_evidence}}
+                </tbody>
+            </table>
+            {{/has_any_evidence}}
+
+            <!-- Score summary -->
+            {{#indicators}}
+            {{#score}}
+            <div class="score-summary-block">
+                <div class="score-row-1">
+                    <span class="score-label">เป้าหมายของปีนี้</span>
+                    <span class="score-sep">:</span>
+                    <span>{{#target_score}}ระดับ {{target_score}}{{/target_score}}{{^target_score}}-{{/target_score}}</span>
+                    <span class="score-self">ผลการประเมินตนเองครั้งนี้ : ระดับ <strong>{{score}}</strong></span>
+                </div>
+                <div class="score-row-2">
+                    <span class="score-label">ผลการดำเนินงาน</span>
+                    <span class="score-sep">&nbsp;</span>
+                    {{#goal_achieved}}<span class="score-checkbox">&#9745;</span> บรรลุเป้าหมาย{{/goal_achieved}}
+                    {{^goal_achieved}}<span class="score-checkbox">&#9744;</span> ไม่บรรลุเป้าหมาย{{/goal_achieved}}
+                </div>
+            </div>
+            {{/score}}
+            {{/indicators}}
+
+        </div>
+        {{/components}}
+    </section>
+
+    <!-- CHAPTER 3: SWOT Summary -->
+    <section class="chapter">
+        <div class="chapter-banner">ส่วนที่ 3 : สรุปจุดแข็งและข้อควรพัฒนา</div>
+        <div class="swot-item">
+            <div class="swot-title strengths">จุดแข็ง (Strengths)</div>
+            <div class="rich-content">{{{swot_s}}}</div>
+        </div>
+        <div class="swot-item" style="margin-top: 12px;">
+            <div class="swot-title improvements">จุดควรพัฒนา (Areas for Improvement)</div>
+            <div class="rich-content">{{{swot_w}}}</div>
+        </div>
+    </section>
+
+</body>
+</html>

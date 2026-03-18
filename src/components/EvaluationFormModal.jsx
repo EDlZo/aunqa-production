@@ -607,7 +607,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
           </div>
 
           {/* Numerical Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-blue-500" />
@@ -626,24 +626,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 disabled={readOnly}
               />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-green-500" />
-                คะแนนอ้างอิงเกณฑ์
-              </label>
-              <input
-                type="number"
-                min="0"
-                max={criteriaData.score || "5"}
-                step="0.1"
-                value={referenceScore}
-                onChange={(e) => setReferenceScore(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                placeholder={`0.0 - ${criteriaData.score || "5.0"}`}
-                required
-                disabled={readOnly}
-              />
-            </div>
+            
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-purple-500" />

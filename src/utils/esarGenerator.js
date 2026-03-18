@@ -118,7 +118,8 @@ export class ESARGenerator {
     async preloadImages() {
         if (typeof window === 'undefined') return;
         const imageUrls = new Set();
-        ['history', 'vision', 'mission', 'structure'].forEach(key => {
+        const profileKeys = ['universityInfo', 'programInfo', 'history', 'vision', 'mission', 'structure'];
+        profileKeys.forEach(key => {
             this.extractImageData(this.metadata[key]).forEach(url => imageUrls.add(url));
         });
         if (this.metadata.swot) {
@@ -333,12 +334,63 @@ export class ESARGenerator {
     }
 
     renderIntroduction() {
-        this.addTitle('บทที่ 1: โครงร่างองค์กร (Organization Profile)', 16);
-        this.currentY += 5;
-        if (this.metadata.history) { this.addTitle('ประวัติความเป็นมา (History)', 14, 'bold'); this.addText(this.metadata.history); this.currentY += 5; }
-        if (this.metadata.vision) { this.addTitle('วิสัยทัศน์ (Vision)', 14, 'bold'); this.addText(this.metadata.vision); this.currentY += 5; }
-        if (this.metadata.mission) { this.addTitle('พันธกิจ (Mission)', 14, 'bold'); this.addText(this.metadata.mission); this.currentY += 5; }
-        if (this.metadata.structure) { this.addTitle('โครงสร้างการบริหาร (Organization Structure)', 14, 'bold'); this.addText(this.metadata.structure); this.currentY += 5; }
+        // --- Header Banner (Grey) ---
+        if (this.currentY + 20 > this.safeBottom) this.addPage();
+        this.doc.setFillColor(226, 232, 240); // bg-slate-200
+        this.doc.rect(this.margin, this.currentY, this.contentWidth, 12, 'F');
+        this.doc.setTextColor(30, 41, 59); // text-slate-800
+        this.doc.setFont('Sarabun', 'bold');
+        this.doc.setFontSize(14);
+        this.doc.text('ส่วนที่ 1 : ข้อมูลทั่วไป', this.pageWidth / 2, this.currentY + 8, { align: 'center' });
+        this.currentY += 18;
+
+        const sections = [
+            { 
+                highlightTitle: 'ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย', 
+                subtitle: '1. ภาพรวมของมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย', 
+                content: this.metadata.universityInfo 
+            },
+            { 
+                highlightTitle: 'ข้อมูลทั่วไปเกี่ยวกับหลักสูตร', 
+                subtitle: '2. ภาพรวมของหลักสูตร', 
+                content: this.metadata.programInfo 
+            }
+        ];
+
+        sections.forEach(section => {
+            if (section.content) {
+                // --- Section Highlight (Yellow) ---
+                if (this.currentY + 25 > this.safeBottom) this.addPage();
+                
+                this.doc.setFillColor(254, 240, 138); // bg-yellow-200
+                this.doc.rect(this.margin, this.currentY, this.contentWidth, 10, 'F');
+                this.doc.setTextColor(0, 0, 0);
+                this.doc.setFont('Sarabun', 'bold');
+                this.doc.setFontSize(12);
+                this.doc.text(section.highlightTitle, this.margin + 2, this.currentY + 7);
+                this.currentY += 12;
+
+                // Subtitle
+                this.doc.setFont('Sarabun', 'bold');
+                this.doc.text(section.subtitle, this.margin, this.currentY + 5);
+                this.currentY += 8;
+                
+                const blocks = this.parseHtmlToBlocks(section.content);
+                // drawBlocks handles its own currentY internally through this.doc.lastAutoTable.finalY 
+                // but since it adds pages, we need to track currentY carefully.
+                // However, drawBlocks modifies this.currentY is NOT correct. 
+                // Actually, the base drawBlocks doesn't update this.currentY! 
+                // It just uses localY. I should probably capture localY.
+                
+                // Let's modify drawBlocks to return the final Y or use this.currentY
+                const startY = this.currentY;
+                this.drawBlocks(blocks, this.margin - 3, startY, this.contentWidth + 6);
+                
+                // After drawing blocks, we need to find where we ended.
+                // Since drawBlocks doesn't return it, we use a trick or fix drawBlocks.
+                // I'll update drawBlocks in pdfGenerator to follow this.currentY if it's top level.
+            }
+        });
     }
 
     renderSWOT() {
@@ -350,9 +402,11 @@ export class ESARGenerator {
         ];
         sections.forEach(section => {
             if (section.content) {
-                if (this.currentY + 60 > this.safeBottom) this.addPage();
+                if (this.currentY + 20 > this.safeBottom) this.addPage();
                 this.addTitle(section.title, 14, 'bold');
-                this.addText(section.content);
+                
+                const blocks = this.parseHtmlToBlocks(section.content);
+                this.drawBlocks(blocks, this.margin - 3, this.currentY, this.contentWidth + 6);
                 this.currentY += 5;
             }
         });
@@ -446,33 +500,45 @@ export class ESARGenerator {
         tableData.push(footerRow);
 
         autoTable(this.doc, {
-            head: [['ลำดับ', 'หัวข้อเกณฑ์ AUN-QA', 'เป้าหมาย', 'ประเมินตน', 'กรรมการ']],
-            body: tableData,
+            head: [['ลำดับ', 'หัวข้อเกณฑ์ AUN-QA']],
+            body: tableData.map(row => [row[0], row[1]]), // Only sequence and quality name
             startY: this.currentY,
             theme: 'grid',
             styles: { font: this.fontFamily, fontSize: 10, cellPadding: 2, fontStyle: 'normal' },
             headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal', cellPadding: 1.5 },
             columnStyles: {
-                0: { halign: 'center', cellWidth: 15 },
-                2: { halign: 'center', cellWidth: 20 },
-                3: { halign: 'center', cellWidth: 20 },
-                4: { halign: 'center', cellWidth: 20 }
+                0: { halign: 'center', cellWidth: 20 },
+                1: { cellWidth: 150 }
             },
             didParseCell: (data) => {
                 if (data.row.index === tableData.length - 1) {
                     data.cell.styles.font = this.fontFamily;
-                    data.cell.styles.fontStyle = 'normal'; // ป้องกันเพี้ยน
-                    data.cell.styles.fillColor = [243, 244, 246]; // bg-gray-100
+                    data.cell.styles.fontStyle = 'normal';
+                    data.cell.styles.fillColor = [243, 244, 246];
                 }
             },
             rowPageBreak: 'avoid'
         });
+
         this.currentY = this.doc.lastAutoTable.finalY + 10;
     }
 
     renderComponentSection(component) {
         const componentNumber = component.component_id || component.id || '';
-        this.addTitle(`องค์ประกอบที่ ${componentNumber} ${component.quality_name}`, 15);
+
+        // Styled Header Bar for Component
+        const headerText = `องค์ประกอบที่ ${componentNumber} : ${component.quality_name}`;
+        this.doc.setFillColor(240, 240, 240); // Light gray background
+        this.doc.rect(this.margin, this.currentY, this.contentWidth, 10, 'F');
+        this.doc.setFontSize(14);
+        this.setFontSafe('bold');
+        this.doc.setTextColor(0, 0, 0);
+        this.doc.text(headerText, this.margin + 2, this.currentY + 7);
+        this.currentY += 15;
+
+        // Add Criteria Title
+        const criteriaTitle = `เกณฑ์คุณภาพที่ ${componentNumber} ${component.quality_name}`;
+        this.addTitle(criteriaTitle, 13, 'bold');
         this.currentY += 5;
 
         const compIndicators = this.indicators.filter(ind =>
@@ -480,20 +546,14 @@ export class ESARGenerator {
             String(ind.component_id) === String(component.component_id)
         );
 
-        if (compIndicators.length === 0) { this.addText('ไม่พบข้อมูลตัวบ่งชี้ในหมวดนี้', 12, 'italic'); return; }
+        if (compIndicators.length === 0) {
+            this.addText('ไม่พบข้อมูลตัวบ่งชี้ในหมวดนี้', 12, 'italic');
+            return;
+        }
 
         // Map preparation (Latest record wins)
         const selfMap = {};
         this.evaluations.forEach(r => { selfMap[String(r.indicator_id)] = r; });
-        const targetMap = {};
-        this.criteria.forEach(r => { targetMap[String(r.indicator_id)] = r; });
-        const commMap = {};
-        this.committeeEvaluations.forEach(r => { commMap[String(r.indicator_id)] = r; });
-
-        const getVal = (ind, dataMap, key) => {
-            const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
-            return parseFloat(item?.[key] || item?.['score'] || 0);
-        };
 
         compIndicators.sort((a, b) => {
             const seqA = String(a.sequence || '').split('.').map(Number);
@@ -507,147 +567,68 @@ export class ESARGenerator {
 
         const body = compIndicators.map(ind => {
             const evalEntry = selfMap[String(ind.id)] || selfMap[String(ind.indicator_id)] || selfMap[String(ind.sequence)] || {};
-            const critEntry = targetMap[String(ind.id)] || targetMap[String(ind.indicator_id)] || targetMap[String(ind.sequence)] || {};
-            const commEntry = commMap[String(ind.id)] || commMap[String(ind.indicator_id)] || commMap[String(ind.sequence)] || {};
+            const resultText = evalEntry.operation_result || evalEntry.result || '';
 
-            const resultText = evalEntry.operation_result || evalEntry.result || '-';
-            const targetScore = critEntry.score || '-';
-            const selfScore = evalEntry.operation_score || evalEntry.score || '-';
-            const commScore = commEntry.committee_score || '-';
+            // Combine Sequence + Indicator Name + Result Text
+            const indicatorHeader = `${ind.sequence} ${ind.indicator_name || ''}`;
 
-            return [
-                ind.sequence || '-',
-                ind.indicator_name || '-',
-                { content: '', blocks: this.parseHtmlToBlocks(resultText) },
-                targetScore,
-                selfScore,
-                commScore
+            // Generate content blocks for the first column
+            const contentBlocks = [
+                { type: 'text', content: indicatorHeader, style: 'bold' },
+                ...this.parseHtmlToBlocks(resultText)
             ];
-        });
 
-        // Add Footer Row for averages
-        const mainCount = compIndicators.filter(ind => !String(ind.sequence).includes('.')).length;
-
-        const getAvg = (list, dataMap, scoreKey) => {
-            const valid = list.map(ind => {
-                const val = getVal(ind, dataMap, scoreKey);
-                return val > 0 ? val : NaN;
-            }).filter(v => !isNaN(v));
-            if (valid.length === 0) return '-';
-            const avg = valid.reduce((a, b) => a + b, 0) / valid.length;
-            return Number.isInteger(avg) ? avg : avg.toFixed(2);
-        };
-
-        const targetAvg = getAvg(compIndicators, targetMap, 'score');
-        const selfAvg = getAvg(compIndicators, selfMap, 'operation_score');
-        const commAvg = getAvg(compIndicators, commMap, 'committee_score');
-
-        body.push([
-            '',
-            `รวม ${mainCount} ตัวบ่งชี้`,
-            '',
-            targetAvg,
-            selfAvg,
-            commAvg
-        ]);
-
-        autoTable(this.doc, {
-            head: [['ลำดับ', 'ตัวบ่งชี้', 'ผลการดำเนินงาน', 'เป้าหมาย', 'ประเมินตน', 'กรรมการ']],
-            body: body,
-            startY: this.currentY,
-            theme: 'grid',
-            styles: { font: this.fontFamily, fontSize: 10, cellPadding: 2, overflow: 'linebreak', fontStyle: 'normal' },
-            headStyles: { fillColor: [51, 65, 85], textColor: 255, halign: 'center', fontStyle: 'normal', fontSize: 10, cellPadding: 1.5 },
-            columnStyles: {
-                0: { halign: 'center', cellWidth: 15 },
-                1: { cellWidth: 35 },
-                2: { cellWidth: 60 },
-                3: { halign: 'center', cellWidth: 20 },
-                4: { halign: 'center', cellWidth: 20 },
-                5: { halign: 'center', cellWidth: 20 }
-            },
-            didParseCell: (data) => {
-                if (data.section === 'body' && data.column.index === 2) this.tableComplexCellHook(data, 60);
-                if (data.row.index === body.length - 1) {
-                    data.cell.styles.font = this.fontFamily;
-                    data.cell.styles.fontStyle = 'normal'; // ป้องกันเพี้ยน
-                    data.cell.styles.fillColor = [243, 244, 246];
-                    if (data.column.index === 1) data.cell.styles.halign = 'right';
-                }
-            },
-            didDrawCell: (data) => { if (data.section === 'body' && data.column.index === 2) this.tableComplexDrawHook(data, data.cell.width); },
-            rowPageBreak: 'avoid'
-        });
-        this.currentY = this.doc.lastAutoTable.finalY + 15;
-        const evidenceList = [];
-        const evidenceLinks = []; // Store links for later
-
-        compIndicators.forEach(ind => {
-            const evalData = this.evaluations.find(e => String(e.indicator_id) === String(ind.id));
-            if (evalData && evalData.evidence_meta_json) {
+            // Extract evidence for the second column
+            const evidenceBlocks = [];
+            if (evalEntry && evalEntry.evidence_meta_json) {
                 try {
-                    const meta = JSON.parse(evalData.evidence_meta_json);
-                    Object.values(meta).forEach(m => {
+                    const meta = JSON.parse(evalEntry.evidence_meta_json);
+                    Object.values(meta).forEach((m, idx) => {
                         const fileName = m.name || m.url || '-';
                         const fileUrl = m.url || '';
-                        evidenceList.push([ind.sequence, fileName]);
-                        evidenceLinks.push(fileUrl);
+                        evidenceBlocks.push({
+                            type: 'text',
+                            content: `${ind.sequence}.${idx + 1} ${fileName}`,
+                            url: fileUrl
+                        });
                     });
                 } catch (e) { }
             }
+
+            return [
+                { content: '', blocks: contentBlocks },
+                { content: '', blocks: evidenceBlocks.length > 0 ? evidenceBlocks : [{ type: 'text', content: '-' }] }
+            ];
         });
 
-        if (evidenceList.length > 0) {
-            if (this.currentY + 20 > this.safeBottom) this.addPage();
-            this.doc.setFontSize(12);
-            this.setFontSafe();
-            this.doc.text('รายการหลักฐานอ้างอิง:', this.margin, this.currentY);
-            this.currentY += 5;
+        autoTable(this.doc, {
+            head: [['ผลการดำเนินงาน', 'หลักฐาน/ตารางอ้างอิง']],
+            body: body,
+            startY: this.currentY,
+            theme: 'grid',
+            styles: { font: this.fontFamily, fontSize: 10, cellPadding: 3, overflow: 'linebreak', fontStyle: 'normal' },
+            headStyles: { fillColor: [255, 255, 255], textColor: 0, halign: 'center', fontStyle: 'bold', fontSize: 11, cellPadding: 2, lineWidth: 0.1 },
+            columnStyles: {
+                0: { cellWidth: 120 }, // Wider column for performance results
+                1: { cellWidth: 50 }   // Evidence column
+            },
+            didParseCell: (data) => {
+                if (data.section === 'body') {
+                    const availableWidth = data.column.index === 0 ? 120 : 50;
+                    this.tableComplexCellHook(data, availableWidth);
+                }
+            },
+            didDrawCell: (data) => {
+                if (data.section === 'body') {
+                    this.tableComplexDrawHook(data, data.cell.width);
+                }
+            },
+            rowPageBreak: 'avoid'
+        });
 
-            autoTable(this.doc, {
-                head: [['ตัวบ่งชี้', 'ชื่อเอกสารหลักฐาน']],
-                body: evidenceList,
-                startY: this.currentY,
-                theme: 'striped',
-                styles: { font: this.fontFamily, fontSize: 9, fontStyle: 'normal' },
-                headStyles: { fillColor: [148, 163, 184], textColor: 255, fontStyle: 'normal' },
-                columnStyles: {
-                    1: { textColor: [37, 99, 235] } // Blue color for links
-                },
-                didDrawCell: (data) => {
-                    // Add clickable link to evidence file name
-                    if (data.section === 'body' && data.column.index === 1) {
-                        const rowIndex = data.row.index;
-                        const url = evidenceLinks[rowIndex];
-
-                        if (url) {
-                            // Add underline to indicate it's a link
-                            const textWidth = this.doc.getTextWidth(data.cell.text[0] || '');
-                            this.doc.setDrawColor(37, 99, 235);
-                            this.doc.setLineWidth(0.1);
-                            this.doc.line(
-                                data.cell.x + 2,
-                                data.cell.y + data.cell.height - 2,
-                                data.cell.x + 2 + textWidth,
-                                data.cell.y + data.cell.height - 2
-                            );
-
-                            // Add clickable link
-                            this.doc.link(
-                                data.cell.x,
-                                data.cell.y,
-                                data.cell.width,
-                                data.cell.height,
-                                { url: url }
-                            );
-                        }
-                    }
-                },
-                rowPageBreak: 'avoid'
-            });
-            this.currentY = this.doc.lastAutoTable.finalY + 10;
-        }
+        this.currentY = this.doc.lastAutoTable.finalY + 15;
     }
+
 
     save(filename = 'ESAR-Report.pdf') { this.addFootersToAllPages(); this.doc.save(filename); }
     getBlob() { this.addFootersToAllPages(); return this.doc.output('blob'); }

@@ -1,0 +1,482 @@
+/* styles.css - Optimized for A4 PDF Print - Matched to ESAR PDF Example */
+/* Note: @font-face for Sarabun is injected as base64 by puppeteer.cjs */
+
+* {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+body {
+    font-family: 'TH Sarabun New', sans-serif;
+    font-size: 14pt;
+    line-height: 1.8;
+    color: #1a1a1a;
+    margin: 0;
+    padding: 0;
+}
+
+/* เนื้อหาทั่วไป 14pt */
+p, td, li, .rich-content, .evidence-item, .sub-criteria-item {
+    font-size: 14pt;
+}
+
+/* Page Setup */
+@page {
+    size: A4;
+    margin: 25mm 20mm 25mm 20mm;
+}
+
+/* ===== COVER PAGE ===== */
+.cover-page {
+    height: 250mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    page-break-after: always;
+}
+
+.main-title {
+    font-size: 20pt;
+    color: #1e40af;
+    margin-bottom: 8mm;
+    font-weight: bold;
+}
+
+.sub-title {
+    font-size: 18pt;
+    margin-bottom: 4mm;
+    font-weight: bold;
+}
+
+.cover-info {
+    margin-top: 40mm;
+    font-size: 14pt;
+}
+
+/* ===== PAGE HEADER (shown on each page via puppeteer headerTemplate) ===== */
+.page-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 2pt solid #1e40af;
+    padding-bottom: 4px;
+    margin-bottom: 6mm;
+    font-size: 11pt;
+    color: #1e40af;
+    font-weight: bold;
+}
+
+/* ===== CHAPTER SECTIONS ===== */
+.chapter {
+    page-break-before: always;
+    margin-bottom: 10mm;
+}
+
+/* "ส่วนที่ 1 : ข้อมูลทั่วไป" — centered, no background, just bold text */
+.chapter-banner {
+    background-color: #c7c7c7;
+    padding: 4px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18pt;
+    margin: 0 0 10mm 0;
+    padding: 6px 0;
+}
+
+/* Yellow highlight bar — thin, matches PDF example */
+.section-highlight {
+    background-color: #fef08a;
+    padding: 4px 10px;
+    font-weight: bold;
+    font-size: 18pt;
+    margin: 12px 0 8px 0;
+    border: none;
+    border-radius: 0;
+}
+
+/* Sub-headings like "1. ภาพรวมของมหาวิทยาลัย" — bold, no background */
+.sub-heading {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 10px 0 6px 0;
+}
+
+/* ===== COMPONENT & INDICATOR ===== */
+.component-section {
+    page-break-before: always;
+    margin-bottom: 10mm;
+}
+
+.component-section:first-of-type,
+.component-section.first-component {
+    page-break-before: avoid;
+}
+
+/* Gray banner for each component (องค์ประกอบที่ N) */
+.component-banner {
+    background-color: #c7c7c7;
+    padding: 6px 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16pt;
+    margin: 10mm 0 6mm 0;
+}
+
+/* Bold left-aligned heading for each AUN component — รูปแบบ "เกณฑ์คุณภาพที่ N ..." */
+.component-heading {
+    font-size: 18pt;
+    font-weight: bold;
+    margin: 0 0 6mm 0;
+    text-align: left;
+}
+
+.indicator-block {
+    margin-bottom: 16px;
+    page-break-inside: avoid;
+}
+
+/* รายชื่อตัวบ่งชี้ทั้งหมดก่อนตาราง */
+.indicator-list {
+    margin: 8px 0 12px 0;
+}
+
+/* ข้อรอง เช่น "1.1 ชื่อตัวบ่งชี้" — ไม่มี "เกณฑ์" นำหน้า */
+.indicator-heading {
+    font-size: 14pt;
+    font-weight: normal;
+    margin: 3px 0 3px 8px;
+}
+
+/* ===== TABLES ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 14pt;
+    page-break-inside: auto;
+}
+
+tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+th, td {
+    border: 0.5pt solid #555;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+    word-wrap: break-word;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+/* Ensure bottom border always shows on last row */
+.content-table tbody tr:last-child td {
+    border-bottom: 1pt solid #555;
+}
+
+th {
+    background-color: #f1f5f9;
+    font-weight: bold;
+}
+
+thead {
+    display: table-header-group;
+}
+
+/* Rich content tables (nested inside td) — full width within cell */
+.rich-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0;
+    font-size: 14pt;
+}
+
+.rich-content table th,
+.rich-content table td {
+    border: 0.5pt solid #888;
+    padding: 4px 8px;
+    vertical-align: top;
+}
+
+.center {
+    text-align: center;
+}
+
+.col-num {
+    width: 12%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.col-result {
+    width: 88%;
+}
+
+/* ===== RICH CONTENT ===== */
+.rich-content {
+    text-align: justify;
+    font-size: 14pt !important;
+    line-height: 1.8;
+    text-indent: 2em;
+}
+
+.rich-content p {
+    margin: 0 0 6px 0;
+    text-indent: 2em;
+    font-size: 14pt !important;
+}
+
+/* Override any inline font-size from Quill editor */
+.rich-content * {
+    font-size: 14pt !important;
+    font-family: 'TH Sarabun New', sans-serif !important;
+}
+
+.rich-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 8px auto;
+}
+
+/* ===== SWOT ===== */
+.swot-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.swot-item {
+    border: 1pt solid #e2e8f0;
+    padding: 12px;
+    page-break-inside: avoid;
+}
+
+.swot-title {
+    margin-top: 0;
+    font-size: 14pt;
+    border-bottom: 1.5pt solid;
+    padding-bottom: 4px;
+}
+
+.strengths { color: #15803d; border-color: #15803d; }
+.improvements { color: #b91c1c; border-color: #b91c1c; }
+
+/* ===== SCORE BOX ===== */
+.score-box {
+    margin-top: 8px;
+    padding: 4px 10px;
+    background-color: #f0fdf4;
+    border: 1pt solid #bbf7d0;
+    display: inline-block;
+    font-size: 14pt;
+}
+
+/* ===== CONTENT TABLE (Section 2) ===== */
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1pt solid #555;
+    margin: 8px 0;
+    font-size: 14pt;
+    table-layout: fixed;
+    page-break-inside: auto;
+}
+
+/* Wrapper — ขึ้นหน้าใหม่ก่อนตาราง */
+.content-table-wrapper {
+    page-break-before: always;
+}
+
+.content-table th{
+  text-align: center;
+}
+
+.content-table td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.col-content {
+    width: 70%;
+}
+
+.col-evidence {
+    width: 30%;
+    vertical-align: top;
+}
+
+/* ===== EVIDENCE TABLE ===== */
+.evidence-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px 0;
+    font-size: 14pt;
+    table-layout: fixed;
+}
+
+.evidence-table th,
+.evidence-table td {
+    border: 0.5pt solid #555;
+    padding: 5px 8px;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.evidence-table th {
+    background-color: #f1f5f9;
+    font-weight: bold;
+}
+
+.ev-col-num {
+    width: 12%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ev-col-name {
+    width: 38%;
+}
+
+.ev-col-link {
+    width: 50%;
+}
+
+.evidence-link {
+    color: #1e40af;
+    text-decoration: underline;
+    word-break: break-all;
+    font-size: 13pt;
+}
+.evidence-item {
+    margin: 2px 0;
+    font-size: 14pt;
+    line-height: 1.4;
+}
+
+/* ===== SUB-CRITERIA ===== */
+.sub-criteria {
+    margin: 4px 0 8px 0;
+}
+
+.sub-criteria-item {
+    margin: 2px 0 2px 1em;
+    font-size: 14pt;
+    line-height: 1.8;
+}
+
+/* Sub-criteria nested table inside content-table cell */
+.sub-criteria-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+    font-size: 14pt;
+    border: none;
+}
+
+.sub-criteria-table td {
+    border: none;
+    border-bottom: 0.3pt solid #ccc;
+    padding: 3px 6px;
+    vertical-align: top;
+}
+
+.sub-num {
+    width: 8%;
+    text-align: center;
+    font-weight: normal;
+}
+
+.sub-text {
+    width: 92%;
+}
+
+/* Indicator label inside table row */
+.row-content-wrap {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.row-indicator-label {
+    font-weight: bold;
+    font-size: 14pt;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.row-content-wrap .rich-content {
+    flex: 1;
+    text-indent: 0;
+}
+
+/* Indicator label inside cell e.g. "▶ 1.2. ชื่อตัวบ่งชี้" */
+.eval-label {
+    font-weight: bold;
+    font-size: 14pt;
+    margin: 8px 0 4px 0;
+}
+
+/* ===== SCORE SUMMARY ===== */
+.score-summary-block {
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 14pt;
+    line-height: 1.8;
+}
+
+.score-row-1 {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    margin-bottom: 2px;
+}
+
+.score-row-2 {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+}
+
+.score-label {
+    min-width: 52mm;
+    display: inline-block;
+}
+
+.score-sep {
+    min-width: 8mm;
+    display: inline-block;
+}
+
+.score-self {
+    margin-left: 20mm;
+}
+
+.score-checkbox {
+    font-size: 14pt;
+    margin-right: 4px;
+}
+
+/* ===== COVER PAGE ELEMENTS ===== */
+.cover-logo {
+    max-width: 80px;
+    margin: 0 auto 8mm auto;
+    display: block;
+}
+
+.cover-title {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 6mm;
+}
+
+.cover-subtitle {
+    font-size: 20pt;
+    font-weight: bold;
+    margin-bottom: 3mm;
+}

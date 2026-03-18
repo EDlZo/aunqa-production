@@ -159,27 +159,49 @@ export class PDFGenerator {
     return h + 2;
   }
 
-  drawBlocks(blocks, cellX, cellY, cellWidth, maxHeight = 9999) {
+  drawBlocks(blocks, cellX, cellY, cellWidth, maxHeight = 0) {
     let localY = cellY + 2;
     const padding = 6;
     const drawWidth = Math.max(10, cellWidth - padding);
+    const isTopLevel = maxHeight === 0;
 
     for (const block of blocks) {
-      if (localY > this.safeBottom + 5) break;
+      if (isTopLevel && localY > this.safeBottom - 5) {
+        this.addPage();
+        localY = this.margin + 5;
+      } else if (!isTopLevel && localY > cellY + maxHeight - 2) {
+        break; 
+      }
 
       if (block.type === 'text') {
         this.doc.setFontSize(10);
         const split = this.doc.splitTextToSize(block.content, drawWidth);
-        this.doc.text(split, cellX + 2, localY + 3);
-        localY += (split.length * 5);
+        
+        if (isTopLevel) {
+          split.forEach(line => {
+            if (localY > this.safeBottom - 5) {
+              this.addPage();
+              localY = this.margin + 5;
+            }
+            this.doc.text(line, cellX + 2, localY + 3);
+            localY += 6;
+          });
+        } else {
+          this.doc.text(split, cellX + 2, localY + 3);
+          localY += (split.length * 5);
+        }
       } else if (block.type === 'table') {
         const tableWidth = drawWidth - 1;
-        // Calculate equal column widths
         const numCols = block.content[0] ? block.content[0].length : 1;
         const colWidth = tableWidth / numCols;
         const columnStyles = {};
         for (let i = 0; i < numCols; i++) {
           columnStyles[i] = { cellWidth: colWidth };
+        }
+
+        if (isTopLevel && localY + 20 > this.safeBottom) {
+          this.addPage();
+          localY = this.margin + 5;
         }
 
         this.doc.autoTable({
@@ -188,8 +210,8 @@ export class PDFGenerator {
           margin: { left: cellX + 2.5 },
           tableWidth: tableWidth,
           theme: 'grid',
-          styles: { font: 'helvetica', fontSize: 8, cellPadding: 1, minCellHeight: 7, lineWidth: 0.1, overflow: 'linebreak' },
-          columnStyles: columnStyles, // Enforce equal width
+          styles: { font: 'Sarabun', fontSize: 9, cellPadding: 1, minCellHeight: 7, lineWidth: 0.1, overflow: 'linebreak' },
+          columnStyles: columnStyles,
           didParseCell: (hookData) => this.tableComplexCellHook(hookData, tableWidth),
           didDrawCell: (hookData) => this.tableComplexDrawHook(hookData, tableWidth)
         });
@@ -206,13 +228,23 @@ export class PDFGenerator {
             const ratio = dim ? dim.ratio : 0.6;
             let imgWidth = drawWidth;
             let imgHeight = drawWidth * ratio;
-            if (imgHeight > 60) { imgHeight = 60; imgWidth = imgHeight / ratio; }
+            if (imgHeight > 80) { imgHeight = 80; imgWidth = imgHeight / ratio; }
+
+            if (isTopLevel && localY + imgHeight + 5 > this.safeBottom) {
+              this.addPage();
+              localY = this.margin + 5;
+            }
+
             const offsetX = (drawWidth - imgWidth) / 2;
             this.doc.addImage(block.content, format, cellX + 2 + offsetX, localY + 1, imgWidth, imgHeight);
             localY += imgHeight + 3;
           }
         } catch (e) { }
       }
+    }
+    
+    if (isTopLevel) {
+      this.currentY = localY;
     }
   }
 

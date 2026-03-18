@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { generatePDF } = require('./server/pdf/puppeteer.cjs');
 require('dotenv').config();
 
 // Firebase Admin SDK
@@ -402,6 +403,21 @@ app.post('/api/evaluation_tual/remove-file', (req, res, next) => {
 app.post('/api/evaluation_tual/append-files', (req, res, next) => {
   req.url = '/api/evaluations-actual/append-files';
   next();
+});
+
+// ================= PDF GENERATION =================
+app.post('/api/generate-pdf', async (req, res) => {
+  try {
+    console.log('📄 Generating PDF for:', req.body.program_name);
+    const pdfBuffer = await generatePDF(req.body);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=ESAR_Report_${encodeURIComponent(req.body.program_name)}.pdf`);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('PDF Generation Route Error:', error);
+    res.status(500).json({ error: 'ไม่สามารถสร้างไฟล์ PDF ได้', details: error.message });
+  }
 });
 
 // Health check
@@ -2950,15 +2966,13 @@ app.get('/api/esar-metadata', async (req, res) => {
     const { session_id, major_name, year } = req.query;
     // Allow fetching by just major_name and year, or session_id
     if (!session_id && (!major_name || !year)) {
-      // return res.status(400).json({ error: 'Need session_id or (major_name + year)' });
-      // Allow fetching all if admin? No, let's return empty if no filters
       return res.json({});
     }
 
     const filters = {};
     if (session_id) filters.session_id = session_id;
     if (major_name) filters.major_name = major_name;
-    if (year) filters.year = year;
+    if (year) filters.year = isNaN(year) ? year : Number(year);
 
     const metadata = await getData('esar_metadata', filters);
     res.json(metadata[0] || {});
@@ -2982,19 +2996,36 @@ app.post('/api/esar-metadata', async (req, res) => {
     if (existing.length > 0) {
       const id = existing[0].id;
       if (db) {
+        // NEW: Handle base64 images in rich text fields for ESAR metadata
+        const processedData = { ...data };
+        for (const key in processedData) {
+          if (typeof processedData[key] === 'string' && processedData[key].includes('data:image')) {
+            processedData[key] = await extractAndUploadBase64Images(processedData[key], session_id || 'metadata', 'esar');
+          }
+        }
+
         await db.collection('esar_metadata').doc(id).update({
-          ...data,
+          ...processedData,
           updated_at: admin.firestore.FieldValue.serverTimestamp()
         });
       }
       res.json({ success: true, id });
     } else {
-      const newData = {
-        session_id,
-        major_name,
-        year,
-        ...data
-      };
+      // NEW: Handle base64 images in rich text fields for ESAR metadata
+      const processedData = { ...data };
+      for (const key in processedData) {
+        if (typeof processedData[key] === 'string' && processedData[key].includes('data:image')) {
+          processedData[key] = await extractAndUploadBase64Images(processedData[key], session_id || 'metadata', 'esar');
+        }
+      }
+
+      // Filter out undefined values to avoid Firestore errors
+      const newData = {};
+      if (session_id !== undefined) newData.session_id = session_id;
+      if (major_name !== undefined) newData.major_name = major_name;
+      if (year !== undefined) newData.year = isNaN(year) ? year : Number(year);
+      Object.assign(newData, processedData);
+
       const result = await addData('esar_metadata', newData);
       res.json(result);
     }
