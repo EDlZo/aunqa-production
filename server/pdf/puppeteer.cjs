@@ -29,7 +29,7 @@ async function generatePDF(data) {
                 defaultViewport: chromium.defaultViewport,
                 // Download a pre-compiled AL2023-compatible binary at runtime
                 executablePath: await chromium.executablePath(
-                    'https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar'
+                    'https://github.com/Sparticuz/chromium/releases/download/v123.0.1/chromium-v123.0.1-pack.tar'
                 ),
                 headless: chromium.headless,
                 ignoreHTTPSErrors: true,
