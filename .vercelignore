@@ -1,0 +1,9 @@
+# Vercel Deployment Ignore
+node_modules
+dist
+uploads/
+⠀⠀⠀⠀/
+.git
+.npmrc
+.vercel
+*.log
