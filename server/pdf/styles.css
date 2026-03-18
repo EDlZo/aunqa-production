@@ -55,16 +55,22 @@ p, td, li, .rich-content, .evidence-item, .sub-criteria-item {
     font-size: 14pt;
 }
 
-/* ===== PAGE HEADER (shown on each page via puppeteer headerTemplate) ===== */
-.page-header {
+/* ===== PAGE HEADER Decorator (Used in Puppeteer headerTemplate) ===== */
+.page-header-line {
+    width: 100%;
+    height: 2pt;
+    background-color: #1e40af;
+    border-bottom: 1pt solid #1e40af;
+    margin-bottom: 2mm;
+}
+
+.header-text-top {
     display: flex;
-    align-items: center;
-    border-bottom: 2pt solid #1e40af;
-    padding-bottom: 4px;
-    margin-bottom: 6mm;
+    justify-content: space-between;
     font-size: 11pt;
     color: #1e40af;
     font-weight: bold;
+    margin-bottom: 1mm;
 }
 
 /* ===== CHAPTER SECTIONS ===== */
@@ -73,15 +79,14 @@ p, td, li, .rich-content, .evidence-item, .sub-criteria-item {
     margin-bottom: 10mm;
 }
 
-/* "ส่วนที่ 1 : ข้อมูลทั่วไป" — centered, no background, just bold text */
+/* "ส่วนที่ 1 : ข้อมูลทั่วไป" — centered grey banner */
 .chapter-banner {
-    background-color: #c7c7c7;
-    padding: 4px 10px;
+    background-color: #d1d5db; /* Gray-300 matches PDF example */
+    padding: 8px 10px;
     text-align: center;
     font-weight: bold;
     font-size: 18pt;
-    margin: 0 0 10mm 0;
-    padding: 6px 0;
+    margin: 10mm 0 10mm 0;
 }
 
 /* Yellow highlight bar — thin, matches PDF example */
@@ -141,11 +146,11 @@ p, td, li, .rich-content, .evidence-item, .sub-criteria-item {
     margin: 8px 0 12px 0;
 }
 
-/* ข้อรอง เช่น "1.1 ชื่อตัวบ่งชี้" — ไม่มี "เกณฑ์" นำหน้า */
+/* ข้อรอง เช่น "1.1 ชื่อตัวบ่งชี้" */
 .indicator-heading {
     font-size: 14pt;
-    font-weight: normal;
-    margin: 3px 0 3px 8px;
+    font-weight: bold;
+    margin: 8px 0 4px 0;
 }
 
 /* ===== TABLES ===== */
@@ -256,14 +261,14 @@ thead {
 }
 
 .swot-title {
-    margin-top: 0;
-    font-size: 14pt;
-    border-bottom: 1.5pt solid;
+    margin-top: 15px;
+    font-size: 16pt;
+    font-weight: bold;
     padding-bottom: 4px;
 }
 
-.strengths { color: #15803d; border-color: #15803d; }
-.improvements { color: #b91c1c; border-color: #b91c1c; }
+.strengths { color: #15803d; border-bottom: 2pt solid #15803d; }
+.improvements { color: #b91c1c; border-bottom: 2pt solid #b91c1c; }
 
 /* ===== SCORE BOX ===== */
 .score-box {
@@ -443,17 +448,19 @@ thead {
 }
 
 .score-label {
-    min-width: 52mm;
+    min-width: 45mm;
     display: inline-block;
+    white-space: nowrap;
 }
 
 .score-sep {
-    min-width: 8mm;
+    min-width: 5mm;
     display: inline-block;
 }
 
 .score-self {
-    margin-left: 20mm;
+    margin-left: 15mm;
+    white-space: nowrap;
 }
 
 .score-checkbox {

@@ -33,7 +33,7 @@ function renderIndicator(template, ind) {
     }
 
     // Score
-    if (ind.score) {
+    if (ind.score != null) {
         t = t.replace(/{{#score}}([\s\S]*?){{\/score}}/g, '$1');
         t = t.replace(/{{score}}/g, String(ind.score));
     } else {
@@ -41,7 +41,7 @@ function renderIndicator(template, ind) {
     }
 
     // Target score
-    if (ind.target_score) {
+    if (ind.target_score != null) {
         t = t.replace(/{{#target_score}}([\s\S]*?){{\/target_score}}/g, '$1');
         t = t.replace(/{{target_score}}/g, String(ind.target_score));
     } else {
@@ -51,12 +51,18 @@ function renderIndicator(template, ind) {
     t = t.replace(/\{\{\^target_score\}\}([\s\S]*?)\{\{\/target_score\}\}/g, ind.target_score ? '' : '$1');
 
     // Goal achieved
-    if (ind.goal_achieved) {
-        t = t.replace(/{{#goal_achieved}}([\s\S]*?){{\/goal_achieved}}/g, '$1');
-        t = t.replace(/\{\{\^goal_achieved\}\}[\s\S]*?\{\{\/goal_achieved\}\}/g, '');
+    if (ind.goal_achieved != null) {
+        if (ind.goal_achieved) {
+            t = t.replace(/{{#goal_achieved}}([\s\S]*?){{\/goal_achieved}}/g, '$1');
+            t = t.replace(/\{\{\^goal_achieved\}\}[\s\S]*?\{\{\/goal_achieved\}\}/g, '');
+        } else {
+            t = t.replace(/{{#goal_achieved}}[\s\S]*?{{\/goal_achieved}}/g, '');
+            t = t.replace(/\{\{\^goal_achieved\}\}([\s\S]*?)\{\{\/goal_achieved\}\}/g, '$1');
+        }
     } else {
+        // If undefined, hide both blocks to be safe
         t = t.replace(/{{#goal_achieved}}[\s\S]*?{{\/goal_achieved}}/g, '');
-        t = t.replace(/\{\{\^goal_achieved\}\}([\s\S]*?)\{\{\/goal_achieved\}\}/g, '$1');
+        t = t.replace(/\{\{\^goal_achieved\}\}[\s\S]*?\{\{\/goal_achieved\}\}/g, '');
     }
 
     // Evidence
@@ -107,16 +113,33 @@ function renderTemplate(html, data) {
 
                 // Build flat evidence list across all indicators for this component
                 const allEvidence = [];
+                let firstIndWithScore = null;
                 indicators.forEach(ind => {
                     if (ind.has_evidence && ind.evidence_list) {
                         ind.evidence_list.forEach(ev => allEvidence.push(ev));
                     }
+                    if (!firstIndWithScore && ind.score != null) {
+                        firstIndWithScore = ind;
+                    }
                 });
                 const hasAnyEvidence = allEvidence.length > 0;
+                
+                // If we found any score in indicators, but firstIndWithScore is still null, 
+                // try just the first indicator as fallback
+                if (!firstIndWithScore && indicators.length > 0) {
+                    firstIndWithScore = indicators[0];
+                }
 
                 // Replace each {{#indicators}}...{{/indicators}} block independently
                 compHtml = compHtml.replace(/{{#indicators}}([\s\S]*?){{\/indicators}}/g, (_m2, indTemplate) => {
                     return indicators.map(ind => renderIndicator(indTemplate, ind)).join('');
+                });
+
+                // Support {{#first_indicator}} helper to avoid duplication for component-level items
+                compHtml = compHtml.replace(/{{#first_indicator}}([\s\S]*?){{\/first_indicator}}/g, (_m2, indTemplate) => {
+                    if (!firstIndWithScore) return '';
+                    console.log(`[first_indicator] Rendering score for ${firstIndWithScore.sequence}: ${firstIndWithScore.score}`);
+                    return renderIndicator(indTemplate, firstIndWithScore);
                 });
 
                 // Evidence table

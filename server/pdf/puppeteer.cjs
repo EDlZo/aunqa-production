@@ -68,13 +68,21 @@ async function generatePDF(data) {
             margin: { top: '25mm', bottom: '25mm', left: '20mm', right: '20mm' },
             displayHeaderFooter: true,
             headerTemplate: `
-                <div style="font-family: 'TH Sarabun New', sans-serif; font-size: 8pt; width: 100%; text-align: center; border-bottom: 0.5pt solid #eee; padding-bottom: 5px; color: #666; margin: 0 20mm;">
-                    ${data.university_name || ''} | ${data.faculty_name || ''} | ESAR ${data.year || ''}
+                <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-top: 10mm;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11pt; color: #1e40af; font-weight: bold; margin-bottom: 1mm;">
+                        <span>${data.faculty_name || 'คณะวิศวกรรมศาสตร์'}</span>
+                        <span style="text-align: right;">${data.university_name || 'มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย'}</span>
+                    </div>
+                    <div style="width: 100%; height: 1.5pt; background-color: #1e40af; border-bottom: 0.5pt solid #1e40af;"></div>
                 </div>
             `,
             footerTemplate: `
-                <div style="font-family: 'TH Sarabun New', sans-serif; font-size: 9pt; width: 100%; text-align: center; color: #666;">
-                    - <span class="pageNumber"></span> -
+                <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-bottom: 10mm;">
+                    <div style="width: 100%; height: 1pt; background-color: #1e40af; margin-bottom: 2mm;"></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 10pt; color: #1e40af; font-weight: bold;">
+                        <span style="flex: 1;">รายงานการประเมินคุณภาพการศึกษาภายในหลักสูตร${data.program_name || ''} ปีการศึกษา ${data.year || ''}</span>
+                        <span style="width: 40px; text-align: right;">-<span class="pageNumber"></span>-</span>
+                    </div>
                 </div>
             `
         });
