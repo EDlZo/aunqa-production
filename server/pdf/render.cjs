@@ -4,13 +4,25 @@ const path = require('path');
 function renderIndicator(template, ind) {
     let t = template;
 
-    // Strip inline font-size from rich text content (Quill editor injects these)
-    const stripInlineFontSize = (html) => {
+    // Sanitize rich text content from Quill editor
+    const sanitizeRichText = (html) => {
         if (!html) return html;
-        return html
-            .replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
-            .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
-            .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
+        let t = html;
+        // Strip inline font-sizes
+        t = t.replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
+             .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
+             .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
+        
+        // Replace checkmarks/ballot boxes with CSS-based version
+        // Support: ✓ (U+2713), ✔ (U+2714), ☑ (U+2611), ✅ (U+2705), ☒ (U+2612)
+        // Support Empty: □ (U+25A1), ☐ (U+2610)
+        const checkmarkHtml = '<span class="score-checkbox checked" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+
+        t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
+        t = t.replace(/[\u2610\u25A1]/g, boxHtml);
+        
+        return t;
     };
 
     const isMainIndicator = !String(ind.sequence || '').includes('.');
@@ -18,13 +30,13 @@ function renderIndicator(template, ind) {
     t = t.replace(/{{sequence}}/g, ind.sequence || '');
     t = t.replace(/{{display_sequence}}/g, ind.display_sequence || ind.sequence || '');
     t = t.replace(/{{indicator_name}}/g, ind.indicator_name || '');
-    t = t.replace(/{{{evaluation_text}}}/g, stripInlineFontSize(ind.evaluation_text) || '');
+    t = t.replace(/{{{evaluation_text}}}/g, sanitizeRichText(ind.evaluation_text) || '');
 
     // Committee SWOT & Score
     t = t.replace(/{{committee_score}}/g, (!isMainIndicator && ind.committee_score != null) ? String(ind.committee_score) : '');
-    t = t.replace(/{{{strengths}}}/g, stripInlineFontSize(ind.strengths) || '');
-    t = t.replace(/{{{improvements}}}/g, stripInlineFontSize(ind.improvements) || '');
-    t = t.replace(/{{{development_plan}}}/g, stripInlineFontSize(ind.development_plan) || '');
+    t = t.replace(/{{{strengths}}}/g, sanitizeRichText(ind.strengths) || '');
+    t = t.replace(/{{{improvements}}}/g, sanitizeRichText(ind.improvements) || '');
+    t = t.replace(/{{{development_plan}}}/g, sanitizeRichText(ind.development_plan) || '');
 
     // Sub-criteria
     if (ind.has_sub_criteria && ind.sub_criteria_list && ind.sub_criteria_list.length > 0) {
@@ -94,20 +106,28 @@ function renderTemplate(html, data) {
     let result = html;
     console.log('[renderTemplate] components:', data.components?.length, 'first comp indicators:', data.components?.[0]?.indicators?.length);
 
-    // Strip inline font-size from rich text fields
-    const stripInlineFontSize = (html) => {
+    // Sanitize rich text fields
+    const sanitizeRichText = (html) => {
         if (!html) return html;
-        return html
-            .replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
-            .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
-            .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
+        let t = html;
+        t = t.replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
+             .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
+             .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
+        
+        const checkmarkHtml = '<span class="score-checkbox checked" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+
+        t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
+        t = t.replace(/[\u2610\u25A1]/g, boxHtml);
+        
+        return t;
     };
 
-    // Strip from rich text data fields
-    if (data.university_info) data = { ...data, university_info: stripInlineFontSize(data.university_info) };
-    if (data.program_info) data = { ...data, program_info: stripInlineFontSize(data.program_info) };
-    if (data.swot_s) data = { ...data, swot_s: stripInlineFontSize(data.swot_s) };
-    if (data.swot_w) data = { ...data, swot_w: stripInlineFontSize(data.swot_w) };
+    // Sanitize from rich text data fields
+    if (data.university_info) data = { ...data, university_info: sanitizeRichText(data.university_info) };
+    if (data.program_info) data = { ...data, program_info: sanitizeRichText(data.program_info) };
+    if (data.swot_s) data = { ...data, swot_s: sanitizeRichText(data.swot_s) };
+    if (data.swot_w) data = { ...data, swot_w: sanitizeRichText(data.swot_w) };
 
     // Components loop
     if (data.components && Array.isArray(data.components)) {
