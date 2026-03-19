@@ -77,6 +77,19 @@ async function generatePDF(data) {
             `<style>${fontFaceCSS}</style><style>${styles}</style></head>`
         );
 
+        // Add fonts to header/footer templates too (isolated context)
+        const headerFooterStyle = `<style>${fontFaceCSS}</style>`;
+        
+        // Handle logo_url conversion to base64 if it's a relative path
+        if (data.logo_url && data.logo_url.startsWith('/')) {
+            const logoPath = path.join(__dirname, '..', '..', 'public', data.logo_url.substring(1));
+            const logoBase64 = loadFontAsBase64(logoPath); // Re-use buffer to base64 helper
+            if (logoBase64) {
+                const ext = path.extname(logoPath).substring(1) || 'png';
+                data.logo_url = `data:image/${ext};base64,${logoBase64}`;
+            }
+        }
+
         const finalHtml = renderTemplate(htmlWithStyles, data);
 
         await page.setContent(finalHtml, { waitUntil: 'networkidle0' });
@@ -90,6 +103,7 @@ async function generatePDF(data) {
             margin: { top: '25mm', bottom: '25mm', left: '20mm', right: '20mm' },
             displayHeaderFooter: true,
             headerTemplate: `
+                ${headerFooterStyle}
                 <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-top: 10mm;">
                     <div style="display: flex; justify-content: space-between; font-size: 11pt; color: #1e40af; font-weight: bold; margin-bottom: 1mm;">
                         <span>${data.faculty_name || 'คณะวิศวกรรมศาสตร์'}</span>
@@ -99,6 +113,7 @@ async function generatePDF(data) {
                 </div>
             `,
             footerTemplate: `
+                ${headerFooterStyle}
                 <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-bottom: 10mm;">
                     <div style="width: 100%; height: 1pt; background-color: #1e40af; margin-bottom: 2mm;"></div>
                     <div style="display: flex; justify-content: space-between; font-size: 10pt; color: #1e40af; font-weight: bold;">

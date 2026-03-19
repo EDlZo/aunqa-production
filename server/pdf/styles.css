@@ -479,8 +479,26 @@ thead {
 }
 
 .score-checkbox {
-    font-size: 10pt;
+    display: inline-block;
+    width: 12pt;
+    height: 12pt;
+    border: 0.5pt solid #1e40af;
+    vertical-align: middle;
+    position: relative;
     margin-right: 4px;
+    background-color: white;
+}
+
+.score-checkbox.checked::after {
+    content: '';
+    position: absolute;
+    left: 3.5pt;
+    top: 1pt;
+    width: 3.5pt;
+    height: 7pt;
+    border: solid #1e40af;
+    border-width: 0 1.5pt 1.5pt 0;
+    transform: rotate(45deg);
 }
 
 /* ===== COVER PAGE ELEMENTS ===== */

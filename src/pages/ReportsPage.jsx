@@ -292,6 +292,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       const reportData = {
         university_name: 'มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย',
         faculty_name: selectedProgram?.facultyName || selectedProgram?.faculty_name || '',
+        logo_url: '/rmutsv-logo.png',
         program_name: majorName,
         year: selectedYear,
         university_info: esarData.universityInfo,
