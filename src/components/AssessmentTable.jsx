@@ -320,7 +320,9 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    {(() => {
+                    {!String(indicator.sequence).includes('.') ? (
+                      <span className="text-gray-400"></span>
+                    ) : (() => {
                       const evalData = (mode === 'evaluation' ? localSessionData?.evaluationsActual : localSessionData?.evaluations)
                         ?.find(r => String(r.indicator_id) === String(indicator.id));
                       return (
@@ -359,7 +361,9 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center space-x-2">
-                      {(() => {
+                      {!String(indicator.sequence).includes('.') ? (
+                        <span className="text-gray-400"></span>
+                      ) : (() => {
                         const evalData = (mode === 'evaluation' ? localSessionData?.evaluationsActual : localSessionData?.evaluations)
                           ?.find(r => String(r.indicator_id) === String(indicator.id));
 

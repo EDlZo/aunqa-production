@@ -452,7 +452,7 @@ export class ESARGenerator {
         };
 
         const getAvgScore = (list, dataMap, scoreKey) => {
-            const valid = list.map(ind => {
+            const valid = list.filter(ind => String(ind.sequence || '').includes('.')).map(ind => {
                 const val = getVal(ind, dataMap, scoreKey);
                 return val > 0 ? val : NaN;
             }).filter(s => !isNaN(s));
@@ -569,13 +569,13 @@ export class ESARGenerator {
             const evalEntry = selfMap[String(ind.id)] || selfMap[String(ind.indicator_id)] || selfMap[String(ind.sequence)] || {};
             const resultText = evalEntry.operation_result || evalEntry.result || '';
 
-            // Combine Sequence + Indicator Name + Result Text
-            const indicatorHeader = `${ind.sequence} ${ind.indicator_name || ''}`;
-
             // Generate content blocks for the first column
+            const indicatorHeader = `${ind.sequence} ${ind.indicator_name || ''}`;
+            const isMain = !String(ind.sequence || '').includes('.');
+            
             const contentBlocks = [
                 { type: 'text', content: indicatorHeader, style: 'bold' },
-                ...this.parseHtmlToBlocks(resultText)
+                ...(!isMain ? this.parseHtmlToBlocks(resultText) : [])
             ];
 
             // Extract evidence for the second column

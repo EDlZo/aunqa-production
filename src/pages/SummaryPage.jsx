@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, GraduationCap, BarChart3 } from 'lucide-react';
+import { FileText, GraduationCap, BarChart3, Star, Activity, TrendingUp, Target, ChevronLeft, Search, Clock, BookOpen } from 'lucide-react';
 import ProgramSelection from '../components/ProgramSelection';
 import { BASE_URL } from '../config/api.js';
 
@@ -242,6 +242,7 @@ export default function SummaryPage({ currentUser }) {
   if (detailIndicator) {
     const crit = getIndicatorData(detailIndicator, criteriaMap);
     const committee = getIndicatorData(detailIndicator, committeeMap);
+    const isMain = !String(detailIndicator.sequence).includes('.');
 
     return (
       <div className="container mx-auto px-4">
@@ -322,112 +323,69 @@ export default function SummaryPage({ currentUser }) {
           </div>
 
           <div className="p-8 space-y-10">
-            {/* Section: ผลการดำเนินงาน (เนื้อหาข้อความ) */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
-                <div className="w-8 h-8 bg-blue-100 rounded-2xl flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+
+            <div className="space-y-8">
+              {/* ส่วนที่ 1: ผลการดำเนินงาน (Text) */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-gray-400" />
+                  <h3 className="text-lg font-bold text-gray-900">ผลการดำเนินงาน</h3>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">ผลการดำเนินงาน</h3>
-              </div>
-              <div className="p-6">
-                <div className="prose max-w-none text-gray-700">
-                  {detailEvaluation?.operation_result ? (
-                    <div dangerouslySetInnerHTML={{ __html: detailEvaluation.operation_result }} />
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <p className="font-medium">ยังไม่มีข้อมูลผลการดำเนินงาน</p>
-                      <p className="text-sm text-gray-400 mt-1">ยังไม่มีการบันทึกรายละเอียดผลการดำเนินงาน</p>
-                    </div>
-                  )}
+                <div className="p-6 prose prose-sm max-w-none text-gray-700 leading-relaxed">
+                  <div dangerouslySetInnerHTML={{ __html: detailEvaluation?.operation_result || '<em class="text-gray-400">ยังไม่มีข้อมูลผลการดำเนินงาน</em>' }} />
                 </div>
               </div>
-            </div>
 
-            {/* Section: Result Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* ผลการดำเนินงาน Card */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-green-900">ผลการดำเนินงาน</h3>
+              {/* ส่วนที่ 2: ผลลัพธ์เชิงตัวเลข (Green style) */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-emerald-50/30 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-bold text-gray-900 font-bold">ผลลัพธ์เชิงตัวเลข</h3>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/60 rounded-xl p-4 border border-green-200/50">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <div className="text-green-600 font-medium">ค่าเป้าหมาย</div>
-                        <div className="text-green-900 font-bold text-lg">{crit.target_value || '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-green-600 font-medium">คะแนนเป้าหมาย</div>
-                        <div className="text-green-900 font-bold text-lg">{crit.score || '-'}</div>
-                      </div>
-                    </div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">ค่าเป้าหมาย</div>
+                    <div className="text-xl font-bold text-gray-800">{isMain ? '' : (crit.target_value || '-')}</div>
                   </div>
-
-                  <div className="bg-white/60 rounded-xl p-4 border border-green-200/50">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <div className="text-green-600 font-medium">ผลการดำเนินงาน</div>
-                        <div className="text-green-900 font-bold text-lg">{detailEvaluation?.operation_score ?? '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-green-600 font-medium">การบรรลุเป้าหมาย</div>
-                        <div className="text-green-900 font-bold text-lg">{detailEvaluation?.goal_achievement ?? '-'}</div>
-                      </div>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">คะแนนเป้าหมาย</div>
+                    <div className="text-xl font-bold text-gray-800">{isMain ? '' : (crit.score || '-')}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">ผลการดำเนินงาน</div>
+                    <div className="text-xl font-bold text-gray-800">{isMain ? '' : (detailEvaluation?.operation_score ?? '-')}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">การบรรลุเป้าหมาย</div>
+                    <div className={`text-xl font-bold ${detailEvaluation?.goal_achievement === 'บรรลุ' ? 'text-green-600' : 'text-red-500'}`}>
+                      {isMain ? '' : (detailEvaluation?.goal_achievement || 'รอยืนยัน')}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* คะแนนประเมิน Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-bold text-blue-900">คะแนนประเมิน</h3>
+              {/* ส่วนที่ 3: ผลการประเมินโดยกรรมการ (Blue style) */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-blue-50/30 flex items-center gap-2">
+                  <Star className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-900">ผลการประเมินโดยกรรมการ</h3>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white/60 rounded-xl p-4 border border-blue-200/50">
-                    <div className="text-blue-600 font-medium text-sm mb-2">คะแนนประเมิน (กรรมการ)</div>
-                    <div className="text-blue-900 font-bold text-2xl">{committee.committee_score || '-'}</div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คะแนนประเมิน</div>
+                    <div className="text-3xl font-black text-gray-800">{isMain ? '' : (committee.committee_score || '-')}</div>
                   </div>
-
-                  <div className="bg-white/60 rounded-xl p-4 border border-blue-200/50">
-                    <div className="text-blue-600 font-medium text-sm mb-2">Strengths (จุดแข็ง)</div>
-                    <div className="text-blue-900 text-sm">
-                      {committee.strengths ? (
-                        <div dangerouslySetInnerHTML={{ __html: committee.strengths }} />
-                      ) : (
-                        <em className="text-blue-600">ยังไม่มีข้อมูล</em>
-                      )}
-                    </div>
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">จุดเด่น</div>
+                    <div className="text-gray-700 text-sm" dangerouslySetInnerHTML={{ __html: committee.strengths || 'ยังไม่มีข้อมูล' }} />
                   </div>
-
-                  <div className="bg-white/60 rounded-xl p-4 border border-blue-200/50">
-                    <div className="text-blue-600 font-medium text-sm mb-2">Areas for Improvement</div>
-                    <div className="text-blue-900 text-sm">
-                      {committee.improvements ? (
-                        <div dangerouslySetInnerHTML={{ __html: committee.improvements }} />
-                      ) : (
-                        <em className="text-blue-600">ยังไม่มีข้อมูล</em>
-                      )}
-                    </div>
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">จุดที่ควรพัฒนา</div>
+                    <div className="text-gray-700 text-sm" dangerouslySetInnerHTML={{ __html: committee.improvements || 'ยังไม่มีข้อมูล' }} />
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">แผนพัฒนา</div>
+                    <div className="text-gray-700 text-sm" dangerouslySetInnerHTML={{ __html: committee.development_plan || 'ยังไม่มีข้อมูล' }} />
                   </div>
                 </div>
               </div>
@@ -799,46 +757,49 @@ export default function SummaryPage({ currentUser }) {
                     const crit = getIndicatorData(ind, criteriaMap);
                     const committee = getIndicatorData(ind, committeeMap);
 
+                    const isMain = !String(ind.sequence).includes('.');
                     return (
                       <tr key={ind.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-center text-sm font-semibold text-gray-900 border-r border-gray-200">
-                          {String(ind.sequence).includes('.') ? (
-                            <span>{ind.sequence}</span>
-                          ) : (
+                          {isMain ? (
                             <span className="inline-flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold">
                               {ind.sequence}
                             </span>
+                          ) : (
+                            <span>{ind.sequence}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 border-r border-gray-200 text-left">
-                          <div className={(String(ind.sequence).includes('.') ? 'font-normal' : 'font-bold') + ' text-gray-900 text-left'}>
+                          <div className={(isMain ? 'font-bold' : 'font-normal') + ' text-gray-900 text-left'}>
                             {ind.indicator_name}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
-                          {crit.score || '-'}
+                          {isMain ? '' : (crit.score || '-')}
                         </td>
                         <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
-                          {latest ? `${latest.operation_score ?? '-'}` : '-'}
+                          {isMain ? '' : (latest ? `${latest.operation_score ?? '-'}` : '-')}
                         </td>
                         <td className="px-6 py-4 text-center text-sm border-r border-gray-200">
-                          {latest && latest.goal_achievement ? (
+                          {(isMain || !latest || !latest.goal_achievement) ? '' : (
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${latest.goal_achievement === 'บรรลุ' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                               }`}>
                               {latest.goal_achievement}
                             </span>
-                          ) : '-'}
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center text-sm border-r border-gray-200 font-medium">
-                          {committee.committee_score || '-'}
+                          {isMain ? '' : (committee.committee_score || '-')}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <button
-                            onClick={() => openIndicatorDetail(ind)}
-                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors whitespace-nowrap"
-                          >
-                            ดูรายละเอียด
-                          </button>
+                          {!isMain && (
+                            <button
+                              onClick={() => openIndicatorDetail(ind)}
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors whitespace-nowrap"
+                            >
+                              ดูรายละเอียด
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -850,11 +811,11 @@ export default function SummaryPage({ currentUser }) {
                   <tr>
                     <td className="px-6 py-4 border-r border-gray-200"></td>
                     <td className="px-6 py-4 text-right text-sm text-gray-900 border-r border-gray-200">
-                      รวม {viewIndicators.filter(ind => !String(ind.sequence).includes('.')).length} ตัวบ่งชี้
+                      รวม {viewIndicators.filter(ind => String(ind.sequence).includes('.')).length} ตัวบ่งชี้
                     </td>
                     <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                       {(() => {
-                        const validScores = viewIndicators.map(ind => {
+                        const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                           const crit = getIndicatorData(ind, criteriaMap);
                           const val = parseFloat(crit.score || 0);
                           return val > 0 ? val : NaN;
@@ -866,7 +827,7 @@ export default function SummaryPage({ currentUser }) {
                     </td>
                     <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                       {(() => {
-                        const validScores = viewIndicators.map(ind => {
+                        const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                           const latest = getIndicatorData(ind, operationMap);
                           const val = parseFloat(latest?.operation_score || 0);
                           return val > 0 ? val : NaN;
@@ -879,7 +840,7 @@ export default function SummaryPage({ currentUser }) {
                     <td className="px-6 py-4 border-r border-gray-200"></td>
                     <td className="px-6 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                       {(() => {
-                        const validScores = viewIndicators.map(ind => {
+                        const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                           const committee = getIndicatorData(ind, committeeMap);
                           const val = parseFloat(committee.committee_score || 0);
                           return val > 0 ? val : NaN;

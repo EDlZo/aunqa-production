@@ -428,59 +428,45 @@ export default function CommitteeEvaluationPage({ currentUser }) {
 
           <div className="p-8 space-y-10">
             {/* Section: Result Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              <div className="lg:col-span-8 space-y-6">
-                <div className="flex items-center gap-2 text-gray-900 font-bold text-lg border-b border-gray-100 pb-3">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  ผลการดำเนินงาน
+            <div className="space-y-8">
+              {/* รายละเอียดผลการดำเนินงาน (Text) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 overflow-hidden">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">ผลการดำเนินงาน</h3>
                 </div>
                 <div
-                  className="prose max-w-none text-gray-700 bg-gray-50/50 rounded-xl p-6 border border-gray-100 shadow-inner leading-relaxed"
+                  className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: latest?.operation_result || '<div class="text-gray-400 italic">ไม่มีข้อมูลการดำเนินงาน</div>' }}
                 />
               </div>
 
-              <div className="lg:col-span-4 space-y-6">
-                <div className="flex items-center gap-2 text-gray-900 font-bold text-lg border-b border-gray-100 pb-3">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
-                  ผลลัพธ์เชิงตัวเลข
+              {/* ผลลัพธ์เชิงตัวเลข (Numeric) */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-emerald-50/30 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-bold text-gray-900">ผลลัพธ์เชิงตัวเลข</h3>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">เป้าหมาย</span>
-                      <Target className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-gray-900">{crit.score || '-'}</span>
-                      <span className="text-sm text-gray-500">(เป้าหมาย: {crit.target_value || '-'})</span>
-                    </div>
+                <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm text-center">
+                    <div className="text-xs font-semibold text-gray-400 uppercase mb-2">เป้าหมาย</div>
+                    <div className="text-2xl font-bold text-gray-900">{crit.score || '-'}</div>
+                    <div className="text-[10px] text-gray-400 mt-1">(ค่าที่ต้องการ: {crit.target_value || '-'})</div>
                   </div>
 
-                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">ผลลัพธ์จริง</span>
-                      <Activity className="w-4 h-4 text-green-400" />
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-green-600">{latest?.operation_score ?? '-'}</span>
-                    </div>
+                  <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm text-center">
+                    <div className="text-xs font-semibold text-gray-400 uppercase mb-2">ผลลัพธ์จริง</div>
+                    <div className="text-2xl font-bold text-emerald-600">{latest?.operation_score ?? '-'}</div>
                   </div>
 
-                  <div className={`rounded-xl border p-5 shadow-sm ${latest?.goal_achievement === 'บรรลุ'
+                  <div className={`rounded-xl border p-5 shadow-sm text-center ${latest?.goal_achievement === 'บรรลุ'
                     ? 'bg-green-50 border-green-100'
-                    : latest?.goal_achievement === 'ไม่บรรลุ'
-                      ? 'bg-red-50 border-red-100'
-                      : 'bg-yellow-50 border-yellow-100'
-                    }`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-semibold uppercase tracking-wider ${latest?.goal_achievement === 'บรรลุ' ? 'text-green-600' : 'text-gray-500'
-                        }`}>การบรรลุเป้าหมาย</span>
-                      {latest?.goal_achievement === 'บรรลุ' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                    </div>
-                    <div className={`text-xl font-bold ${latest?.goal_achievement === 'บรรลุ' ? 'text-green-700' : 'text-gray-800'
-                      }`}>
+                    : 'bg-red-50 border-red-100'
+                  }`}>
+                    <div className="text-xs font-semibold uppercase text-gray-400 mb-2">การบรรลุเป้าหมาย</div>
+                    <div className={`text-2xl font-bold ${latest?.goal_achievement === 'บรรลุ' ? 'text-green-700' : 'text-red-700'}`}>
                       {latest?.goal_achievement || 'รอยืนยัน'}
                     </div>
                   </div>
@@ -899,25 +885,29 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                               ) : '-'}
                             </td>
                             <td className="px-4 py-4 text-center">
-                              {['system_admin', 'external_evaluator'].includes(currentUser?.role) ? (
-                                <button
-                                  onClick={() => setEvaluatingIndicator(ind)}
-                                  className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg shadow-sm transition-all whitespace-nowrap ${hasCommitteeScore
-                                    ? 'bg-green-600 text-white hover:bg-green-700'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                    }`}
-                                >
-                                  {hasCommitteeScore ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <ClipboardCheck className="w-3.5 h-3.5 mr-1" />}
-                                  ประเมินผล
-                                </button>
+                              {!String(ind.sequence).includes('.') ? (
+                                <span className="text-gray-400">-</span>
                               ) : (
-                                <button
-                                  onClick={() => setEvaluatingIndicator(ind)}
-                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap"
-                                >
-                                  <Search className="w-3.5 h-3.5 mr-1" />
-                                  รายละเอียด
-                                </button>
+                                ['system_admin', 'external_evaluator'].includes(currentUser?.role) ? (
+                                  <button
+                                    onClick={() => setEvaluatingIndicator(ind)}
+                                    className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg shadow-sm transition-all whitespace-nowrap ${hasCommitteeScore
+                                      ? 'bg-green-600 text-white hover:bg-green-700'
+                                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                                      }`}
+                                  >
+                                    {hasCommitteeScore ? <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> : <ClipboardCheck className="w-3.5 h-3.5 mr-1" />}
+                                    ประเมินผล
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => setEvaluatingIndicator(ind)}
+                                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all whitespace-nowrap"
+                                  >
+                                    <Search className="w-3.5 h-3.5 mr-1" />
+                                    รายละเอียด
+                                  </button>
+                                )
                               )}
                             </td>
                           </tr>
@@ -938,7 +928,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       </td>
                       <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                         {(() => {
-                          const validScores = viewIndicators.map(ind => {
+                          const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                             const crit = getIndicatorData(ind, criteriaMap);
                             const val = parseFloat(crit.score || 0);
                             return val > 0 ? val : NaN;
@@ -950,7 +940,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       </td>
                       <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                         {(() => {
-                          const validScores = viewIndicators.map(ind => {
+                          const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                             const actual = getIndicatorData(ind, operationMap);
                             const val = parseFloat(actual?.operation_score || 0);
                             return val > 0 ? val : NaN;
@@ -963,7 +953,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                       <td className="px-4 py-4 border-r border-gray-200"></td>
                       <td className="px-4 py-4 text-center text-sm text-gray-900 border-r border-gray-200">
                         {(() => {
-                          const validScores = viewIndicators.map(ind => {
+                          const validScores = viewIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                             const comm = getIndicatorData(ind, committeeMap);
                             const val = parseFloat(comm?.committee_score || 0);
                             return val > 0 ? val : NaN;

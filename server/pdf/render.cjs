@@ -13,13 +13,15 @@ function renderIndicator(template, ind) {
             .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
     };
 
+    const isMainIndicator = !String(ind.sequence || '').includes('.');
+
     t = t.replace(/{{sequence}}/g, ind.sequence || '');
     t = t.replace(/{{display_sequence}}/g, ind.display_sequence || ind.sequence || '');
     t = t.replace(/{{indicator_name}}/g, ind.indicator_name || '');
     t = t.replace(/{{{evaluation_text}}}/g, stripInlineFontSize(ind.evaluation_text) || '');
 
     // Committee SWOT & Score
-    t = t.replace(/{{committee_score}}/g, ind.committee_score != null ? String(ind.committee_score) : '');
+    t = t.replace(/{{committee_score}}/g, (!isMainIndicator && ind.committee_score != null) ? String(ind.committee_score) : '');
     t = t.replace(/{{{strengths}}}/g, stripInlineFontSize(ind.strengths) || '');
     t = t.replace(/{{{improvements}}}/g, stripInlineFontSize(ind.improvements) || '');
     t = t.replace(/{{{development_plan}}}/g, stripInlineFontSize(ind.development_plan) || '');
@@ -39,19 +41,21 @@ function renderIndicator(template, ind) {
     }
 
     // Score
-    if (ind.score != null) {
+    if (!isMainIndicator && ind.score != null) {
         t = t.replace(/{{#score}}([\s\S]*?){{\/score}}/g, '$1');
         t = t.replace(/{{score}}/g, String(ind.score));
     } else {
         t = t.replace(/{{#score}}([\s\S]*?){{\/score}}/g, '');
+        t = t.replace(/{{score}}/g, '');
     }
 
     // Target score
-    if (ind.target_score != null) {
+    if (!isMainIndicator && ind.target_score != null) {
         t = t.replace(/{{#target_score}}([\s\S]*?){{\/target_score}}/g, '$1');
         t = t.replace(/{{target_score}}/g, String(ind.target_score));
     } else {
         t = t.replace(/{{#target_score}}([\s\S]*?){{\/target_score}}/g, '');
+        t = t.replace(/{{target_score}}/g, '');
     }
     // Inverted target_score
     t = t.replace(/\{\{\^target_score\}\}([\s\S]*?)\{\{\/target_score\}\}/g, ind.target_score ? '' : '$1');
@@ -135,6 +139,16 @@ function renderTemplate(html, data) {
                 if (!firstIndWithScore && indicators.length > 0) {
                     firstIndWithScore = indicators[0];
                 }
+
+                // Calculate averages for this component (Summary Table)
+                const subInds = indicators.filter(ind => String(ind.sequence || '').includes('.'));
+                const getAvg = (key) => {
+                    const vals = subInds.map(ind => parseFloat(ind[key] || 0)).filter(v => v > 0);
+                    return vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : '-';
+                };
+                compHtml = compHtml.replace(/{{target_avg}}/g, getAvg('target_score'));
+                compHtml = compHtml.replace(/{{self_avg}}/g, getAvg('score'));
+                compHtml = compHtml.replace(/{{committee_avg}}/g, getAvg('committee_score'));
 
                 // Replace each {{#indicators}}...{{/indicators}} block independently
                 compHtml = compHtml.replace(/{{#indicators}}([\s\S]*?){{\/indicators}}/g, (_m2, indTemplate) => {

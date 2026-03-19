@@ -209,7 +209,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const handleGenerateFullESAR = async () => {
     try {
       setRefreshing(true);
-      
+
       // Helper to map an indicator to PDF data
       const mapIndicator = (ind) => {
         const evalItem = evaluations.find(e =>
@@ -430,7 +430,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
                 committeeEvaluations.forEach(r => { cCommMap[String(r.indicator_id)] = r; });
 
                 const getCompAvg = (dataMap, key) => {
-                  const valid = compIndicators.map(ind => {
+                  const valid = compIndicators.filter(ind => String(ind.sequence).includes('.')).map(ind => {
                     const item = dataMap[String(ind.id)] || dataMap[String(ind.indicator_id)] || dataMap[String(ind.sequence)] || {};
                     const val = parseFloat(item?.[key] || item?.['score'] || 0);
                     return val > 0 ? val : NaN;
@@ -447,12 +447,12 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {comp.quality_name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{compIndicators.length}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{compIndicators.filter(ind => String(ind.sequence).includes('.')).length}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-500">{targetScore}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-600">{selfScore}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-indigo-600">{commScore}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      {completedInComp > 0 && completedInComp === compIndicators.length ? (
+                      {completedInComp > 0 && completedInComp === compIndicators.filter(ind => String(ind.sequence).includes('.')).length ? (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           ครบถ้วน
                         </span>
@@ -516,17 +516,21 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
                             <div className="text-sm font-medium text-gray-900">{ind.indicator_id || ind.sequence}. {ind.indicator_name}</div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            {evaluation ? (
-                              <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${evaluation.status === 'approved'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                {evaluation.status === 'approved' ? 'อนุมัติแล้ว' : 'รอตรวจสอบ'}
-                              </span>
+                            {!String(ind.sequence).includes('.') ? (
+                              <span className="text-gray-400">-</span>
                             ) : (
-                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-400 whitespace-nowrap">
-                                ยังไม่ประเมิน
-                              </span>
+                              evaluation ? (
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${evaluation.status === 'approved'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                                  }`}>
+                                  {evaluation.status === 'approved' ? 'อนุมัติแล้ว' : 'รอตรวจสอบ'}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-400 whitespace-nowrap">
+                                  ยังไม่ประเมิน
+                                </span>
+                              )
                             )}
                           </td>
                         </tr>
@@ -580,48 +584,76 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
     </div>
   );
 
-  const renderSWOT = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-      <h3 className="text-lg font-bold text-gray-800 border-b pb-2">บทที่ 3: สรุปจุดแข็งและข้อควรพัฒนา</h3>
+  const renderSWOT = () => {
+    return (
+      <div className="space-y-8">
+        {[...components].sort((a, b) => {
+          const idA = parseInt(a.component_id || a.id || 0);
+          const idB = parseInt(b.component_id || b.id || 0);
+          return idA - idB;
+        }).map((comp) => {
+          const compIndicators = indicators.filter(ind =>
+            String(ind.component_id) === String(comp.component_id) ||
+            String(ind.id) === String(comp.id)
+          );
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-          <label className="flex items-center text-green-800 font-bold mb-2">
-            <CheckCircle className="w-5 h-5 mr-2" /> จุดแข็ง (Strengths)
-          </label>
-          <RichTextEditor
-            value={esarData.swot.s || ''}
-            onChange={val => setEsarData({ ...esarData, swot: { ...esarData.swot, s: val } })}
-            placeholder="ระบุจุดแข็งของหลักสูตร..."
-            minHeight={300}
-          />
-        </div>
+          if (compIndicators.length === 0) return null;
 
-        <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-          <label className="flex items-center text-red-800 font-bold mb-2">
-            <AlertCircle className="w-5 h-5 mr-2" /> จุดควรพัฒนา (Areas for Improvement)
-          </label>
-          <RichTextEditor
-            value={esarData.swot.w || ''}
-            onChange={val => setEsarData({ ...esarData, swot: { ...esarData.swot, w: val } })}
-            placeholder="ระบุจุดที่ควรปรับปรุง..."
-            minHeight={300}
-          />
-        </div>
+          return (
+            <div key={comp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-bold text-gray-800">
+                  องค์ประกอบที่ {comp.component_id || comp.id}: {comp.quality_name}
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ตัวบ่งชี้</th>
+                      <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะของกรรมการ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {compIndicators.map((ind) => {
+                      const commEval = committeeEvaluations.find(e =>
+                        String(e.indicator_id) === String(ind.id) ||
+                        String(e.indicator_id) === String(ind.indicator_id) ||
+                        String(e.indicator_id) === String(ind.sequence)
+                      );
+
+                      return (
+                        <tr key={ind.id} className="hover:bg-gray-50/50">
+                          <td className="px-6 py-4">
+                            <div className="text-sm font-medium text-gray-900">{ind.indicator_id || ind.sequence}. {ind.indicator_name}</div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            {!String(ind.sequence).includes('.') ? (
+                              <span className="text-gray-400">-</span>
+                            ) : (
+                              commEval ? (
+                                <span className="px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap bg-green-100 text-green-800">
+                                  ประเมินแล้ว
+                                </span>
+                              ) : (
+                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                                  ยังไม่ประเมิน
+                                </span>
+                              )
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
       </div>
-
-      <div className="flex justify-end pt-4">
-        <button
-          onClick={handleSaveMetadata}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition"
-          disabled={refreshing}
-        >
-          <Save className="w-4 h-4 mr-2" />
-          บันทึกข้อมูล
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderExport = () => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center space-y-6">
