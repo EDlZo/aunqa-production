@@ -2690,12 +2690,16 @@ app.get('/api/public-stats', async (req, res) => {
     if (currentYear) indQuery = indQuery.where('year', '==', String(currentYear));
     const indSnap = await indQuery.get();
 
-    const compSnap = await db.collection('quality_components').get();
+    const compSnap = await db.collection('quality_components')
+      .where('year', '==', String(currentYear))
+      .get();
     const compIdToName = new Map();
+    const compDocIdToName = new Map();
     compSnap.docs.forEach(doc => {
       const d = doc.data();
-      if (d.component_id && d.quality_name) {
-        compIdToName.set(String(d.component_id), d.quality_name);
+      if (d.quality_name) {
+        compDocIdToName.set(doc.id, d.quality_name);
+        if (d.component_id) compIdToName.set(String(d.component_id), d.quality_name);
       }
     });
 
@@ -2704,7 +2708,10 @@ app.get('/api/public-stats', async (req, res) => {
     indSnap.docs.forEach(doc => {
       const d = doc.data();
       const compId = d.component_id ? String(d.component_id) : null;
-      const name = compId ? compIdToName.get(compId) : null;
+      // Match by numeric component_id OR by doc id of the component
+      const name = compId
+        ? (compIdToName.get(compId) || compDocIdToName.get(compId))
+        : null;
 
       if (name) {
         if (!nameToProgress.has(name)) nameToProgress.set(name, { total: 0, done: 0 });
@@ -2724,15 +2731,16 @@ app.get('/api/public-stats', async (req, res) => {
       .sort((a, b) => b.progress - a.progress)
       .slice(0, 3);
 
-    // 4. Fallback/Fill with unique names if < 3
+    // 4. Fallback/Fill with unique names if < 3 — only from current year components
     if (topComponents.length < 3) {
       const usedNames = new Set(topComponents.map(c => c.name));
-      const allUniqueNames = Array.from(new Set(Array.from(compIdToName.values())));
-
-      const availableNames = allUniqueNames.filter(name => !usedNames.has(name));
-      availableNames.slice(0, 3 - topComponents.length).forEach(name => {
-        topComponents.push({ name, progress: 0 });
-      });
+      const allCurrentYearNames = Array.from(
+        new Set([...compDocIdToName.values(), ...compIdToName.values()])
+      );
+      allCurrentYearNames
+        .filter(name => !usedNames.has(name))
+        .slice(0, 3 - topComponents.length)
+        .forEach(name => topComponents.push({ name, progress: 0 }));
     }
 
     res.json({
@@ -2863,101 +2871,7 @@ app.delete('/api/rounds/:id', async (req, res) => {
   }
 });
 
-// ================= PUBLIC STATISTICS =================
-app.get('/api/public-stats', async (req, res) => {
-  try {
-    if (!db) {
-      return res.json({
-        userCount: 0,
-        indicatorCount: 0,
-        averageScore: "0.0",
-        topComponents: []
-      });
-    }
-
-    // 1. Basic Counts
-    const userSnap = await db.collection('users').count().get();
-    const indicatorSnap = await db.collection('indicators').count().get();
-
-    // 2. Average Score (Committee)
-    // We need to fetch committee evaluations to calculate average score
-    const commSnap = await db.collection('committee_evaluations').get();
-    let totalScore = 0;
-    let scoreCount = 0;
-    commSnap.docs.forEach(doc => {
-      const s = parseFloat(doc.data().committee_score);
-      if (!isNaN(s) && s > 0) { // Only consider valid, positive scores
-        totalScore += s;
-        scoreCount++;
-      }
-    });
-    const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : "0.0";
-
-    // 3. Top Components for Hero Card
-    // Get all quality components to map indicator IDs to component names
-    const compSnap = await db.collection('quality_components').limit(10).get(); // Limit to a reasonable number
-    const indicatorsData = await db.collection('indicators').get(); // Get all indicators to map to components
-
-    const indToComp = new Map(); // Map indicator_id to quality_name
-    indicatorsData.docs.forEach(doc => {
-      const data = doc.data();
-      // Use doc.id as the primary key for indicators
-      if (data.quality_name) {
-        indToComp.set(doc.id, data.quality_name);
-      }
-    });
-
-    const componentsMap = new Map(); // quality_name -> { sum: totalScore, count: numberOfScores }
-    commSnap.docs.forEach(doc => {
-      const data = doc.data();
-      // Ensure indicator_id exists and is a string/number that can be used as a key
-      const indicatorId = data.indicator_id;
-      const qName = indToComp.get(indicatorId); // Get component name using indicator_id
-      const score = parseFloat(data.committee_score);
-
-      if (qName && !isNaN(score) && score > 0) {
-        if (!componentsMap.has(qName)) {
-          componentsMap.set(qName, { sum: 0, count: 0 });
-        }
-        const entry = componentsMap.get(qName);
-        entry.sum += score;
-        entry.count++;
-      }
-    });
-
-    // Calculate average score for each component and sort
-    let topComponents = Array.from(componentsMap.entries())
-      .map(([name, stats]) => ({
-        name,
-        // Assuming max score is 5 for progress calculation
-        progress: Math.round((stats.sum / (stats.count * 5)) * 100)
-      }))
-      .sort((a, b) => b.progress - a.progress) // Sort by progress descending
-      .slice(0, 3); // Take top 3
-
-    // Fallback if not enough data-mapped components or no evaluations
-    if (topComponents.length < 3) {
-      const usedNames = new Set(topComponents.map(c => c.name));
-      compSnap.docs.forEach(doc => {
-        const name = doc.data().quality_name;
-        if (name && !usedNames.has(name) && topComponents.length < 3) {
-          topComponents.push({ name, progress: 0 }); // Add with 0% progress
-          usedNames.add(name);
-        }
-      });
-    }
-
-    res.json({
-      userCount: userSnap.data().count,
-      indicatorCount: indicatorSnap.data().count,
-      averageScore: avgScore,
-      topComponents
-    });
-  } catch (error) {
-    console.error('Error fetching public stats:', error);
-    res.status(500).json({ error: 'Failed to fetch public statistics', details: error.message });
-  }
-});
+// (duplicate public-stats route removed)
 
 // ================= ESAR METADATA =================
 console.log('Registering ESAR Metadata routes...');
