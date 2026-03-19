@@ -13,11 +13,10 @@ function renderIndicator(template, ind) {
              .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
              .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
         
-        // Replace checkmarks/ballot boxes with CSS-based version
-        // Support: ✓ (U+2713), ✔ (U+2714), ☑ (U+2611), ✅ (U+2705), ☒ (U+2612)
-        // Support Empty: □ (U+25A1), ☐ (U+2610)
-        const checkmarkHtml = '<span class="score-checkbox checked" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
-        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+        // Plain black checkmark SVG
+        const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
+        const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
+        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
 
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
@@ -114,8 +113,10 @@ function renderTemplate(html, data) {
              .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
              .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
         
-        const checkmarkHtml = '<span class="score-checkbox checked" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
-        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px;"></span>';
+        // Plain black checkmark SVG
+        const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
+        const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
+        const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
 
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
