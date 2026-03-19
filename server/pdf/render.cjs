@@ -18,6 +18,12 @@ function renderIndicator(template, ind) {
     t = t.replace(/{{indicator_name}}/g, ind.indicator_name || '');
     t = t.replace(/{{{evaluation_text}}}/g, stripInlineFontSize(ind.evaluation_text) || '');
 
+    // Committee SWOT & Score
+    t = t.replace(/{{committee_score}}/g, ind.committee_score != null ? String(ind.committee_score) : '');
+    t = t.replace(/{{{strengths}}}/g, stripInlineFontSize(ind.strengths) || '');
+    t = t.replace(/{{{improvements}}}/g, stripInlineFontSize(ind.improvements) || '');
+    t = t.replace(/{{{development_plan}}}/g, stripInlineFontSize(ind.development_plan) || '');
+
     // Sub-criteria
     if (ind.has_sub_criteria && ind.sub_criteria_list && ind.sub_criteria_list.length > 0) {
         t = t.replace(/{{#has_sub_criteria}}([\s\S]*?){{\/has_sub_criteria}}/g, '$1');

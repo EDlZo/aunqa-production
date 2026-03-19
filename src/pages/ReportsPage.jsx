@@ -231,6 +231,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
         }));
         const selfScore = evalItem?.operation_score ? parseFloat(evalItem.operation_score) : null;
         const targetScore = criteriaItem?.score ? parseFloat(criteriaItem.score) : null;
+        const committeeItem = committeeEvaluations.find(c =>
+          String(c.indicator_id) === String(ind.id) ||
+          String(c.indicator_id) === String(ind.indicator_id) ||
+          String(c.indicator_id) === String(ind.sequence)
+        );
         return {
           sequence: ind.sequence,
           indicator_name: ind.indicator_name,
@@ -244,7 +249,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           target_score: targetScore,
           goal_achieved: selfScore !== null && targetScore !== null ? selfScore >= targetScore : false,
           has_evidence: evidenceList.length > 0,
-          evidence_list: evidenceList
+          evidence_list: evidenceList,
+          committee_score: committeeItem?.committee_score ? parseFloat(committeeItem.committee_score) : null,
+          strengths: committeeItem?.strengths || '',
+          improvements: committeeItem?.improvements || '',
+          development_plan: committeeItem?.development_plan || ''
         };
       };
 

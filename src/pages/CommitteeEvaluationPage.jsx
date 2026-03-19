@@ -24,6 +24,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
   const [editorScore, setEditorScore] = useState('');
   const [editorStrengths, setEditorStrengths] = useState('');
   const [editorImprovements, setEditorImprovements] = useState('');
+  const [editorDevelopmentPlan, setEditorDevelopmentPlan] = useState('');
 
   useEffect(() => {
     // สำหรับหน้าสรุปผลการประเมิน ให้เริ่มต้นใหม่เสมอ
@@ -58,6 +59,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
     setEditorScore(committee.committee_score || '');
     setEditorStrengths(committee.strengths || '');
     setEditorImprovements(committee.improvements || '');
+    setEditorDevelopmentPlan(committee.development_plan || '');
   }, [evaluatingIndicator, committeeMap]);
 
   const fetchAllCommitteeData = async () => {
@@ -99,7 +101,8 @@ export default function CommitteeEvaluationPage({ currentUser }) {
           commMap[String(r.indicator_id)] = {
             committee_score: r.committee_score || '',
             strengths: r.strengths || '',
-            improvements: r.improvements || ''
+            improvements: r.improvements || '',
+            development_plan: r.development_plan || ''
           };
         });
         setCommitteeMap(commMap);
@@ -240,6 +243,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
         committee_score: editorScore,
         strengths: editorStrengths,
         improvements: editorImprovements,
+        development_plan: editorDevelopmentPlan,
       };
       const res = await fetch(`${BASE_URL}/api/committee-evaluations`, {
         method: 'POST',
@@ -249,7 +253,7 @@ export default function CommitteeEvaluationPage({ currentUser }) {
       if (res.ok) {
         setCommitteeMap(prev => ({
           ...prev,
-          [String(evaluatingIndicator.id)]: { committee_score: editorScore, strengths: editorStrengths, improvements: editorImprovements },
+          [String(evaluatingIndicator.id)]: { committee_score: editorScore, strengths: editorStrengths, improvements: editorImprovements, development_plan: editorDevelopmentPlan },
         }));
         handleEvaluationSaved();
         setEvaluatingIndicator(null);
@@ -512,23 +516,33 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                     </div>
                     <div className="md:col-span-3 space-y-6">
                       <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Strengths (จุดแข็ง)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">จุดเด่น (Strengths)</label>
                         <textarea
                           value={editorStrengths}
                           onChange={e => setEditorStrengths(e.target.value)}
                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
                           rows={3}
-                          placeholder="ระบุจุดแข็งที่พบจากการพิจารณาหลักฐาน..."
+                          placeholder="ระบุจุดเด่นที่พบจากการพิจารณาหลักฐาน..."
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Areas for Improvement (ข้อควรพัฒนา)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">จุดที่ควรพัฒนา (Areas for Improvement)</label>
                         <textarea
                           value={editorImprovements}
                           onChange={e => setEditorImprovements(e.target.value)}
                           className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
                           rows={3}
-                          placeholder="ระบุแนวทางที่ควรปรับปรุงเพื่อผลลัพธ์ที่ดีขึ้น..."
+                          placeholder="ระบุจุดที่ควรพัฒนาเพื่อผลลัพธ์ที่ดีขึ้น..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">แผนพัฒนา (Development Plan)</label>
+                        <textarea
+                          value={editorDevelopmentPlan}
+                          onChange={e => setEditorDevelopmentPlan(e.target.value)}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+                          rows={3}
+                          placeholder="ระบุแผนพัฒนา..."
                         />
                       </div>
                     </div>
@@ -550,18 +564,22 @@ export default function CommitteeEvaluationPage({ currentUser }) {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คะแนนประเมิน</div>
                     <div className="text-3xl font-black text-gray-800">{committee.committee_score || '-'}</div>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">จุดแข็ง</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">จุดเด่น</div>
                     <div className="text-gray-700 text-sm italic">{committee.strengths || 'ยังไม่มีข้อมูล'}</div>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">ข้อควรพัฒนา</div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">จุดที่ควรพัฒนา</div>
                     <div className="text-gray-700 text-sm italic">{committee.improvements || 'ยังไม่มีข้อมูล'}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">แผนพัฒนา</div>
+                    <div className="text-gray-700 text-sm italic">{committee.development_plan || 'ยังไม่มีข้อมูล'}</div>
                   </div>
                 </div>
               )}

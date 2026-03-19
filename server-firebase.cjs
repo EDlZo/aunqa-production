@@ -2348,7 +2348,7 @@ app.get('/api/evaluations-actual/history', async (req, res) => {
 // ================= COMMITTEE EVALUATIONS =================
 app.post('/api/committee-evaluations', async (req, res) => {
   try {
-    const { session_id, major_name, indicator_id, committee_score, strengths, improvements, year } = req.body;
+    const { session_id, major_name, indicator_id, committee_score, strengths, improvements, development_plan, year } = req.body;
 
     const evaluationData = {
       session_id,
@@ -2357,6 +2357,7 @@ app.post('/api/committee-evaluations', async (req, res) => {
       committee_score: committee_score ? parseFloat(committee_score) : null,
       strengths,
       improvements,
+      development_plan,
       year: year || null
     };
 

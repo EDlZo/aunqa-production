@@ -7,6 +7,7 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
   const [committeeScore, setCommitteeScore] = useState('');
   const [strengths, setStrengths] = useState('');
   const [improvements, setImprovements] = useState('');
+  const [developmentPlan, setDevelopmentPlan] = useState('');
   const [loading, setLoading] = useState(false);
   const [existingEvaluation, setExistingEvaluation] = useState(null);
 
@@ -27,6 +28,7 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
           setCommitteeScore(latest.committee_score || '');
           setStrengths(latest.strengths || '');
           setImprovements(latest.improvements || '');
+          setDevelopmentPlan(latest.development_plan || '');
         }
       }
     } catch (error) {
@@ -52,7 +54,8 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
         session_id: selectedProgram.session_id,
         committee_score: committeeScore,
         strengths: strengths,
-        improvements: improvements
+        improvements: improvements,
+        development_plan: developmentPlan
       };
 
       const response = await fetch('/api/committee-evaluations', {
@@ -127,30 +130,44 @@ export default function CommitteeEvaluationModal({ indicator, selectedProgram, o
             />
           </div>
 
-          {/* Strengths (จุดแข็ง) */}
+          {/* Strengths (จุดเด่น) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Strengths (จุดแข็ง)
+              จุดเด่น (Strengths)
             </label>
             <div className="border border-gray-300 rounded-md">
               <RichTextEditor
                 value={strengths}
                 onChange={setStrengths}
-                placeholder="ระบุจุดแข็งของตัวบ่งชี้..."
+                placeholder="ระบุจุดเด่นของตัวบ่งชี้..."
               />
             </div>
           </div>
 
-          {/* Areas for Improvement (เรื่องที่พัฒนา/ปรับปรุงได้) */}
+          {/* Areas for Improvement (จุดที่ควรพัฒนา) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Areas for Improvement (เรื่องที่พัฒนา/ปรับปรุงได้)
+              จุดที่ควรพัฒนา (Areas for Improvement)
             </label>
             <div className="border border-gray-300 rounded-md">
               <RichTextEditor
                 value={improvements}
                 onChange={setImprovements}
-                placeholder="ระบุเรื่องที่ควรพัฒนา/ปรับปรุง..."
+                placeholder="ระบุจุดที่ควรพัฒนา..."
+              />
+            </div>
+          </div>
+
+          {/* Development Plan (แผนพัฒนา) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              แผนพัฒนา (Development Plan)
+            </label>
+            <div className="border border-gray-300 rounded-md">
+              <RichTextEditor
+                value={developmentPlan}
+                onChange={setDevelopmentPlan}
+                placeholder="ระบุแผนพัฒนา..."
               />
             </div>
           </div>

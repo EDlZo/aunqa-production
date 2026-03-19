@@ -134,19 +134,89 @@
         {{/components}}
     </section>
 
-    <!-- CHAPTER 3: SWOT Summary -->
+    <!-- CHAPTER 3: Summary -->
     <section class="chapter">
-        <div class="chapter-banner">ส่วนที่ 3 : สรุปจุดแข็งและข้อควรพัฒนา</div>
-        <div class="swot-section" style="padding: 0 10mm;">
-            <div class="swot-item-wrap">
-                <div class="swot-title strengths">จุดแข็ง (Strengths)</div>
-                <div class="rich-content" style="text-indent: 0; padding-top: 5px;">{{{swot_s}}}</div>
-            </div>
-            <div class="swot-item-wrap" style="margin-top: 15mm;">
-                <div class="swot-title improvements">จุดควรพัฒนา (Areas for Improvement)</div>
-                <div class="rich-content" style="text-indent: 0; padding-top: 5px;">{{{swot_w}}}</div>
-            </div>
+        <div class="chapter-banner">ส่วนที่ 3 : สรุปผลการประเมินตนเอง</div>
+        <div style="font-size: 14pt; font-weight: bold; margin-bottom: 5px;">
+            ผลการประเมินตนเองตามเกณฑ์ AUN-QA
+            <span style="color: blue; font-weight: normal; font-size: 14pt;">(เป้าหมายและผลการประเมินตนเองตาม Rating Scale 7 ระดับ)</span>
         </div>
+        
+        <!-- Summary Table -->
+        <table class="aun-summary-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">เกณฑ์</th>
+                    <th style="width: 50%;">รายละเอียด</th>
+                    <th style="width: 10%;">เป้าหมาย</th>
+                    <th style="width: 15%;">คะแนนประเมิน<br/>ตนเอง</th>
+                    <th style="width: 15%;">คะแนนประเมิน<br/>โดยกรรมการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#components}}
+                <!-- Main Category Row -->
+                <tr class="category-row">
+                    <td colspan="5" class="category-name">{{quality_name}}</td>
+                </tr>
+                {{#indicators}}
+                <tr>
+                    <td class="center-text">{{display_sequence}}</td>
+                    <td>{{indicator_name}}</td>
+                    <td class="center-text">{{target_score}}</td>
+                    <td class="center-text">{{score}}</td>
+                    <td class="center-text">{{committee_score}}</td>
+                </tr>
+                {{/indicators}}
+                <tr class="overall-row">
+                    <td colspan="5" class="overall-label" style="text-align: center;">ระดับคะแนนในภาพรวม (Overall Opinion)</td>
+                </tr>
+                {{/components}}
+            </tbody>
+        </table>
+
+        <div style="page-break-before: always;"></div>
+
+        <div style="font-size: 16pt; font-weight: bold; margin-top: 10px; margin-bottom: 5px;">จุดเด่น จุดที่ควรพัฒนา และแผนพัฒนา</div>
+        <table class="aun-swot-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">เกณฑ์</th>
+                    <th style="width: 85%;">รายละเอียด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#components}}
+                <tr class="category-row">
+                    <td colspan="2" class="category-name">{{quality_name}}</td>
+                </tr>
+                {{#indicators}}
+                <tr>
+                    <td class="center-text align-top" rowspan="4" style="font-weight: bold; border-bottom: 1.5pt solid #555;">{{display_sequence}}</td>
+                    <td class="indicator-desc">{{indicator_name}}</td>
+                </tr>
+                <tr>
+                    <td class="swot-detail">
+                        <div class="swot-label">จุดเด่น</div>
+                        <div class="swot-content rich-content">{{{strengths}}}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="swot-detail">
+                        <div class="swot-label">จุดที่ควรพัฒนา</div>
+                        <div class="swot-content rich-content">{{{improvements}}}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="swot-detail" style="border-bottom: 1.5pt solid #555;">
+                        <div class="swot-label">แผนพัฒนา</div>
+                        <div class="swot-content rich-content">{{{development_plan}}}</div>
+                    </td>
+                </tr>
+                {{/indicators}}
+                {{/components}}
+            </tbody>
+        </table>
     </section>
 
 </body>

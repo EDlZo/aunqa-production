@@ -487,3 +487,65 @@ thead {
     font-weight: bold;
     margin-bottom: 3mm;
 }
+
+/* ===== PART 3 CUSTOM TABLES ===== */
+.aun-summary-table, .aun-swot-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 14pt;
+    page-break-inside: auto;
+}
+
+.aun-summary-table tr, .aun-swot-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+
+.aun-summary-table th, .aun-summary-table td,
+.aun-swot-table th, .aun-swot-table td {
+    border: 0.5pt solid #555;
+    padding: 6px 8px;
+    vertical-align: top;
+}
+
+.aun-summary-table th, .aun-swot-table th {
+    background-color: #e2e8f0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.category-row .category-name {
+    background-color: #fef08a; /* Yellow */
+    font-weight: bold;
+}
+
+.overall-row .overall-label {
+    background-color: #fed7aa; /* Orange */
+    font-weight: bold;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.align-top {
+    vertical-align: top;
+}
+
+.indicator-desc {
+    font-size: 14pt;
+}
+
+.swot-detail {
+    padding: 4px 8px !important;
+}
+
+.swot-label {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.swot-content {
+    margin-left: 8px;
+}
