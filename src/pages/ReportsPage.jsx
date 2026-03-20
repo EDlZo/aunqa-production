@@ -372,16 +372,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
             <span className="text-sm text-gray-500 font-medium">สาขา: {majorName || 'ยังไม่ได้เลือกสาขา'}</span>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => {
-                localStorage.removeItem('selectedProgramContext');
-                setSelectedProgram(null);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-2xl text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <RefreshCw size={14} />
-              เปลี่ยนสาขา
-            </button>
+            {/* Moved to Header */}
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -664,8 +655,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       <div>
         <h3 className="text-2xl font-bold text-gray-900">สร้างรายงานฉบับสมบูรณ์</h3>
         <p className="text-gray-500 mt-2 max-w-md mx-auto">
-          ระบบจะรวบรวมข้อมูลทั้งหมด (บทนำ, ผลประเมินรายข้อ, SWOT, เอกสารแนบ)
-          เพื่อสร้างรายงาน ESAR ในรูปแบบ PDF
+          ระบบจะรวบรวมข้อมูลทั้งหมด (ส่วนที่ 1 ,ส่วนที่ 2 ,ส่วนที่ 3)
+          <br />เพื่อสร้างรายงาน ESAR ในรูปแบบ PDF
         </p>
       </div>
 
@@ -779,10 +770,20 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           <p className="text-gray-600 mt-1">บริหารจัดการข้อมูลและสร้างรายงานตามเกณฑ์ AUN-QA</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center gap-3">
+          <button
+            onClick={() => {
+              localStorage.removeItem('selectedProgramContext');
+              setSelectedProgram(null);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-2xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <RefreshCw size={16} />
+            เปลี่ยนสาขา
+          </button>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm"
+            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm h-[42px]"
           >
             {rounds.map(r => (
               <option key={r.id} value={r.year}>{r.name} {r.is_active ? '(Active)' : ''}</option>
@@ -797,7 +798,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           { id: 'dashboard', label: 'ภาพรวม', icon: LayoutDashboard },
           { id: 'profile', label: '1. โครงร่างองค์กร', icon: School },
           { id: 'results', label: '2. ผลการดำเนินงาน', icon: BookOpen },
-          { id: 'swot', label: '3. สรุปจุดแข็งและข้อควรพัฒนา', icon: PieChart },
+          { id: 'swot', label: '3. สรุปผลการประเมินตนเอง', icon: PieChart },
           { id: 'export', label: '4. ออกรายงาน', icon: FileText },
         ].map(tab => (
           <button
