@@ -129,6 +129,7 @@ function renderTemplate(html, data) {
     if (data.program_info) data = { ...data, program_info: sanitizeRichText(data.program_info) };
     if (data.swot_s) data = { ...data, swot_s: sanitizeRichText(data.swot_s) };
     if (data.swot_w) data = { ...data, swot_w: sanitizeRichText(data.swot_w) };
+    if (data.appendix) data = { ...data, appendix: sanitizeRichText(data.appendix) };
 
     // Components loop
     if (data.components && Array.isArray(data.components)) {

@@ -98,23 +98,22 @@ async function generatePDF(data) {
         await page.evaluateHandle('document.fonts.ready');
 
         const pdfBuffer = await page.pdf({
-            format: 'A4',
+            preferCSSPageSize: true, // Crucial for mixed orientation support
             printBackground: true,
-            margin: { top: '25mm', bottom: '25mm', left: '20mm', right: '20mm' },
             displayHeaderFooter: true,
             headerTemplate: `
                 ${headerFooterStyle}
-                <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-top: 10mm;">
+                <div style="font-family: 'TH Sarabun New', sans-serif; width: calc(100% - 40mm); margin: 0 auto; padding-top: 8mm; box-sizing: border-box;">
                     <div style="display: flex; justify-content: space-between; font-size: 11pt; color: #1e40af; font-weight: bold; margin-bottom: 1mm;">
                         <span>${data.faculty_name || 'คณะวิศวกรรมศาสตร์'}</span>
                         <span style="text-align: right;">${data.university_name || 'มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย'}</span>
                     </div>
-                    <div style="width: 100%; height: 1.5pt; background-color: #1e40af; border-bottom: 0.5pt solid #1e40af;"></div>
+                    <div style="width: 100%; height: 1.5pt; background-color: #1e40af;"></div>
                 </div>
             `,
             footerTemplate: `
                 ${headerFooterStyle}
-                <div style="font-family: 'TH Sarabun New', sans-serif; width: 100%; margin: 0 20mm; padding-bottom: 10mm;">
+                <div style="font-family: 'TH Sarabun New', sans-serif; width: calc(100% - 40mm); margin: 0 auto; padding-bottom: 8mm; box-sizing: border-box;">
                     <div style="width: 100%; height: 1pt; background-color: #1e40af; margin-bottom: 2mm;"></div>
                     <div style="display: flex; justify-content: space-between; font-size: 10pt; color: #1e40af; font-weight: bold;">
                         <span style="flex: 1;">รายงานการประเมินคุณภาพการศึกษาภายในหลักสูตร${data.program_name || ''} ปีการศึกษา ${data.year || ''}</span>

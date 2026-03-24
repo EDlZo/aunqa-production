@@ -1411,25 +1411,37 @@ app.get('/api/assessment-sessions/latest', async (req, res) => {
 async function extractAndUploadBase64Images(html, sessionId, indicatorId) {
   if (!html || typeof html !== 'string' || !html.includes('data:image')) return html;
 
-  const base64Regex = /src="data:image\/([a-zA-Z]*);base64,([^"]*)"/g;
+  // More robust regex for base64 images in src attribute
+  const base64Regex = /src=['"]data:image\/([a-zA-Z]*);base64,([^'"]*)['"]/g;
   let resultHtml = html;
   const matches = [];
   let match;
+
+  console.log(`🖼️ [EXTRACT] Processing HTML for images (Session: ${sessionId}, ID: ${indicatorId})...`);
 
   // Collect all matches first to avoid regex state issues during async loop
   while ((match = base64Regex.exec(html)) !== null) {
     matches.push({
       full: match[0],
       type: match[1],
-      data: match[2]
+      data: match[2].trim() // Trim to remove potential newlines/whitespaces
     });
   }
+
+  console.log(`📸 Found ${matches.length} base64 images to extract.`);
 
   for (const item of matches) {
     try {
       const buffer = Buffer.from(item.data, 'base64');
+      if (buffer.length === 0) {
+        console.warn('⚠️ Empty buffer from base64 data, skipping.');
+        continue;
+      }
+
       const filename = `embedded_${Date.now()}_${Math.round(Math.random() * 1000)}.${item.type || 'png'}`;
       const destination = `evidence_actual/${sessionId}/${indicatorId}/${filename}`;
+
+      console.log(`📤 Uploading to Supabase: ${destination} (${buffer.length} bytes)`);
 
       const { error } = await supabase.storage
         .from(process.env.SUPABASE_BUCKET_NAME)
@@ -1443,17 +1455,38 @@ async function extractAndUploadBase64Images(html, sessionId, indicatorId) {
           .from(process.env.SUPABASE_BUCKET_NAME)
           .getPublicUrl(destination);
 
-        resultHtml = resultHtml.replace(item.full, `src="${publicUrl}"`);
-        console.log(`✅ Uploaded embedded image: ${filename}`);
+        // Use split/join for global replacement of identical items if they exist
+        resultHtml = resultHtml.split(item.full).join(`src="${publicUrl}"`);
+        console.log(`✅ Uploaded and replaced: ${filename} -> ${publicUrl}`);
       } else {
-        console.error('Supabase embedded upload error:', error);
+        console.error('❌ Supabase embedded upload error:', error);
+        // We don't throw here to allow other images to try, but this might lead to Firestore limit error if large
       }
     } catch (e) {
-      console.error('Failed to process embedded image:', e);
+      console.error('❌ Failed to process embedded image:', e);
     }
   }
 
   return resultHtml;
+}
+
+// Recursive helper for ESAR metadata objects
+async function processMetadataImages(obj, sessionId, prefix) {
+  if (!obj || typeof obj !== 'object' || obj === null) return obj;
+
+  const processed = Array.isArray(obj) ? [] : {};
+
+  for (const key in obj) {
+    const value = obj[key];
+    if (typeof value === 'string' && value.includes('data:image')) {
+      processed[key] = await extractAndUploadBase64Images(value, sessionId, key === 's' || key === 'w' || key === 'o' || key === 't' ? 'swot' : prefix);
+    } else if (typeof value === 'object' && value !== null) {
+      processed[key] = await processMetadataImages(value, sessionId, prefix);
+    } else {
+      processed[key] = value;
+    }
+  }
+  return processed;
 }
 
 // Helper function to upload file to Supabase Storage
@@ -2901,51 +2934,74 @@ app.post('/api/esar-metadata', async (req, res) => {
   try {
     const { session_id, major_name, year, data } = req.body;
 
+    if (!major_name || !year) {
+      return res.status(400).json({ error: 'Missing major_name or year' });
+    }
+
     const filters = {};
     if (session_id) filters.session_id = session_id;
     if (major_name) filters.major_name = major_name;
-    if (year) filters.year = year;
+    if (year) filters.year = isNaN(year) ? year : Number(year);
+
+    console.log(`📝 Saving ESAR Metadata for ${major_name} (${year})`);
 
     const existing = await getData('esar_metadata', filters);
 
-    if (existing.length > 0) {
-      const id = existing[0].id;
-      if (db) {
-        // NEW: Handle base64 images in rich text fields for ESAR metadata
-        const processedData = { ...data };
-        for (const key in processedData) {
-          if (typeof processedData[key] === 'string' && processedData[key].includes('data:image')) {
-            processedData[key] = await extractAndUploadBase64Images(processedData[key], session_id || 'metadata', 'esar');
+    if (db) {
+      // Handle base64 images in rich text fields recursively
+      const processedData = await processMetadataImages(data, session_id || 'metadata', 'esar');
+
+      if (existing.length > 0) {
+        const id = existing[0].id;
+        console.log(`🔄 Updating existing metadata: ${id}`);
+        try {
+          await db.collection('esar_metadata').doc(id).update({
+            ...processedData,
+            updated_at: admin.firestore.FieldValue.serverTimestamp()
+          });
+          res.json({ success: true, id });
+        } catch (updateErr) {
+          console.error('❌ Firestore update error:', updateErr);
+          if (updateErr.code === 8 || updateErr.message?.includes('too large')) {
+            return res.status(500).json({ 
+              error: 'ข้อมูลขนาดใหญ่เกินไป', 
+              details: 'ไม่สามารถบันทึกได้เนื่องจากรูปภาพในเนื้อหาอาจยังไม่ได้ถูกอัปโหลดขึ้น Cloud กรุณาตรวจสอบการเชื่อมต่อ Supabase' 
+            });
           }
+          throw updateErr;
         }
-
-        await db.collection('esar_metadata').doc(id).update({
-          ...processedData,
+      } else {
+        console.log(`🆕 Creating new metadata for ${major_name}`);
+        // Filter out undefined values to avoid Firestore errors
+        const newData = {
+          created_at: admin.firestore.FieldValue.serverTimestamp(),
           updated_at: admin.firestore.FieldValue.serverTimestamp()
-        });
-      }
-      res.json({ success: true, id });
-    } else {
-      // NEW: Handle base64 images in rich text fields for ESAR metadata
-      const processedData = { ...data };
-      for (const key in processedData) {
-        if (typeof processedData[key] === 'string' && processedData[key].includes('data:image')) {
-          processedData[key] = await extractAndUploadBase64Images(processedData[key], session_id || 'metadata', 'esar');
+        };
+        if (session_id !== undefined) newData.session_id = session_id;
+        if (major_name !== undefined) newData.major_name = major_name;
+        if (year !== undefined) newData.year = isNaN(year) ? year : Number(year);
+        Object.assign(newData, processedData);
+
+        try {
+          const result = await addData('esar_metadata', newData);
+          res.json(result);
+        } catch (addErr) {
+          console.error('❌ Firestore add error:', addErr);
+          if (addErr.code === 8 || addErr.message?.includes('too large')) {
+            return res.status(500).json({ 
+              error: 'ข้อมูลขนาดใหญ่เกินไป', 
+              details: 'ไม่สามารถบันทึกได้เนื่องจากรูปภาพในเนื้อหาอาจยังไม่ได้ถูกอัปโหลดขึ้น Cloud' 
+            });
+          }
+          throw addErr;
         }
       }
-
-      // Filter out undefined values to avoid Firestore errors
-      const newData = {};
-      if (session_id !== undefined) newData.session_id = session_id;
-      if (major_name !== undefined) newData.major_name = major_name;
-      if (year !== undefined) newData.year = isNaN(year) ? year : Number(year);
-      Object.assign(newData, processedData);
-
-      const result = await addData('esar_metadata', newData);
-      res.json(result);
+    } else {
+      console.log('⚠️ Database not available, returning mock success');
+      res.json({ success: true, id: 'mock-id' });
     }
   } catch (error) {
-    console.error('Error saving ESAR metadata:', error);
-    res.status(500).json({ error: 'Failed to save metadata' });
+    console.error('❌ Error saving ESAR metadata:', error);
+    res.status(500).json({ error: 'Failed to save metadata', details: error.message });
   }
 });

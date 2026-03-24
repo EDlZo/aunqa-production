@@ -19,7 +19,10 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear() + 543);
+  const [selectedYear, setSelectedYear] = useState(() => {
+    const saved = localStorage.getItem('selectedYearContext');
+    return saved || (new Date().getFullYear() + 543);
+  });
   const [rounds, setRounds] = useState([]);
   const [activeRound, setActiveRound] = useState(null);
   const [loadingRound, setLoadingRound] = useState(true);
@@ -32,7 +35,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
     vision: '',
     mission: '',
     structure: '',
-    swot: { s: '', w: '', o: '', t: '' }
+    swot: { s: '', w: '', o: '', t: '' },
+    appendix: '' // New Section 4
   });
   const [components, setComponents] = useState([]);
   const [evaluations, setEvaluations] = useState([]); // evaluations_actual
@@ -41,7 +45,12 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
   const [committeeEvaluations, setCommitteeEvaluations] = useState([]);
   const [stats, setStats] = useState({ avg: 0, completed: 0, total: 0 });
 
-  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [selectedProgram, setSelectedProgram] = useState(() => {
+    try {
+      const saved = localStorage.getItem('selectedProgramContext');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
 
   const majorName = selectedProgram?.majorName || selectedProgram?.major_name || '';
 
@@ -63,7 +72,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
         setRounds(data);
         const active = data.find(r => r.is_active);
         setActiveRound(active || null);
-        if (active) setSelectedYear(active.year);
+
+        // Only set year from active round if NO year is stored in localStorage
+        if (active && !localStorage.getItem('selectedYearContext')) {
+          setSelectedYear(active.year);
+        }
       }
     } catch (error) {
       console.error('Failed to load rounds', error);
@@ -87,7 +100,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       vision: '',
       mission: '',
       structure: '',
-      swot: { s: '', w: '', o: '', t: '' }
+      swot: { s: '', w: '', o: '', t: '' },
+      appendix: ''
     });
 
     try {
@@ -103,17 +117,17 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
 
       if (metaRes.ok) {
         const meta = await metaRes.json();
-        if (meta && meta.id) {
-          setEsarData({
-            universityInfo: meta.universityInfo || '',
-            programInfo: meta.programInfo || '',
-            history: meta.history || '',
-            vision: meta.vision || '',
-            mission: meta.mission || '',
-            structure: meta.structure || '',
-            swot: meta.swot || { s: '', w: '', o: '', t: '' }
-          });
-        }
+        // Even if meta is empty {}, we should at least have a default state
+        setEsarData({
+          universityInfo: meta.universityInfo || '',
+          programInfo: meta.programInfo || '',
+          history: meta.history || '',
+          vision: meta.vision || '',
+          mission: meta.mission || '',
+          structure: meta.structure || '',
+          swot: meta.swot || { s: '', w: '', o: '', t: '' },
+          appendix: meta.appendix || ''
+        });
       }
 
       if (bulkRes.ok) {
@@ -299,6 +313,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
         program_info: esarData.programInfo,
         swot_s: esarData.swot?.s || '',
         swot_w: esarData.swot?.w || '',
+        appendix: esarData.appendix || '',
         components: buildComponents
       };
 
@@ -576,6 +591,37 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
     </div>
   );
 
+  const renderAppendixForm = () => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+      <h3 className="text-lg font-bold text-gray-800 border-b pb-2">บทที่ 4: ภาคผนวก</h3>
+
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">ตารางประกอบการเก็บข้อมูลการประเมินระดับหลักสูตร</label>
+
+          <RichTextEditor
+            value={esarData.appendix || ''}
+            onChange={val => setEsarData({ ...esarData, appendix: val })}
+            placeholder="ระบุข้อมูลภาคผนวก..."
+            minHeight={500}
+            pageMode={true}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-4">
+        <button
+          onClick={handleSaveMetadata}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition shadow-md"
+          disabled={refreshing}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          บันทึกข้อมูล
+        </button>
+      </div>
+    </div>
+  );
+
   const renderSWOT = () => {
     return (
       <div className="space-y-8">
@@ -655,7 +701,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
       <div>
         <h3 className="text-2xl font-bold text-gray-900">สร้างรายงานฉบับสมบูรณ์</h3>
         <p className="text-gray-500 mt-2 max-w-md mx-auto">
-          ระบบจะรวบรวมข้อมูลทั้งหมด (ส่วนที่ 1 ,ส่วนที่ 2 ,ส่วนที่ 3)
+          ระบบจะรวบรวมข้อมูลทั้งหมด (ส่วนที่ 1 ,ส่วนที่ 2 ,ส่วนที่ 3 ,ส่วนที่ 4)
           <br />เพื่อสร้างรายงาน ESAR ในรูปแบบ PDF
         </p>
       </div>
@@ -782,7 +828,11 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           </button>
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+            onChange={(e) => {
+              const yr = e.target.value;
+              setSelectedYear(yr);
+              localStorage.setItem('selectedYearContext', yr);
+            }}
             className="bg-white border border-gray-300 text-gray-700 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow-sm h-[42px]"
           >
             {rounds.map(r => (
@@ -799,7 +849,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
           { id: 'profile', label: '1. โครงร่างองค์กร', icon: School },
           { id: 'results', label: '2. ผลการดำเนินงาน', icon: BookOpen },
           { id: 'swot', label: '3. สรุปผลการประเมินตนเอง', icon: PieChart },
-          { id: 'export', label: '4. ออกรายงาน', icon: FileText },
+          { id: 'appendix', label: '4. ภาคผนวก', icon: FileText },
+          { id: 'export', label: '5. ออกรายงาน', icon: Download },
         ].map(tab => (
           <button
             key={tab.id}
@@ -821,6 +872,7 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
         {activeTab === 'profile' && renderProfileForm()}
         {activeTab === 'results' && renderResults()}
         {activeTab === 'swot' && renderSWOT()}
+        {activeTab === 'appendix' && renderAppendixForm()}
         {activeTab === 'export' && renderExport()}
       </div>
 

@@ -28,8 +28,55 @@ li,
 
 /* Page Setup */
 @page {
-    size: A4;
-    margin: 25mm 20mm 25mm 20mm;
+    size: A4 portrait;
+    margin: 25mm 20mm;
+}
+
+@page landscape {
+    size: A4 landscape;
+    margin: 25mm 20mm;
+}
+
+.landscape-section {
+    page: landscape;
+    page-break-before: always;
+    display: block;
+    width: 100%;
+}
+
+/* Fix overlapping header on multi-page tables */
+/* We add a spacer or ensure the first item has enough margin */
+.landscape-section .chapter-banner {
+    margin-top: 5mm;
+}
+
+/* Ensure content within landscape section handles the width correctly */
+.landscape-section .rich-content {
+    text-align: left !important; /* Avoid Thai justification issues in landscape */
+}
+
+.landscape-section .rich-content table {
+    width: 100% !important;
+    max-width: 100% !important; 
+    table-layout: auto !important; 
+    border-collapse: collapse;
+    margin-bottom: 10mm;
+}
+
+/* Optimization for large tables in Appendix - slightly smaller font to fit columns */
+.landscape-section table td, 
+.landscape-section table th {
+    font-size: 8.5pt !important; 
+    line-height: 1.2;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    padding: 3px 4px;
+    width: auto !important; /* Override fixed widths */
+}
+
+.landscape-section table th {
+    background-color: #fce7f3 !important; /* Pink-ish like example */
+    text-align: center;
 }
 
 /* ===== COVER PAGE ===== */
@@ -200,10 +247,12 @@ thead {
 
 /* Rich content tables (nested inside td) — full width within cell */
 .rich-content table {
-    width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     border-collapse: collapse;
     margin: 6px 0;
     font-size: 10pt;
+    table-layout: auto !important; /* Force auto layout to prevent cut-off */
 }
 
 .rich-content table th,
@@ -211,6 +260,9 @@ thead {
     border: 0.5pt solid #888;
     padding: 4px 8px;
     vertical-align: top;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    width: auto !important; /* Override any fixed widths from Quill */
 }
 
 .center {
