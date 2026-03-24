@@ -4,23 +4,18 @@ const path = require('path');
 function renderIndicator(template, ind) {
     let t = template;
 
-    // Sanitize rich text content from Quill editor
+    // Sanitize rich text content - preserve table structure and styles
     const sanitizeRichText = (html) => {
         if (!html) return html;
         let t = html;
-        // Strip inline font-sizes
-        t = t.replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
-             .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
-             .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
-        
-        // Plain black checkmark SVG
+
+        // Replace special checkmark characters with SVG
         const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
         const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
         const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
-
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
-        
+
         return t;
     };
 
@@ -105,22 +100,17 @@ function renderTemplate(html, data) {
     let result = html;
     console.log('[renderTemplate] components:', data.components?.length, 'first comp indicators:', data.components?.[0]?.indicators?.length);
 
-    // Sanitize rich text fields
+    // Sanitize rich text content - preserve table structure and styles
     const sanitizeRichText = (html) => {
         if (!html) return html;
         let t = html;
-        t = t.replace(/font-size\s*:\s*[\d.]+pt\s*;?/gi, '')
-             .replace(/font-size\s*:\s*[\d.]+px\s*;?/gi, '')
-             .replace(/font-size\s*:\s*[\w.]+\s*;?/gi, '');
-        
-        // Plain black checkmark SVG
+
         const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
         const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
         const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
-
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
-        
+
         return t;
     };
 

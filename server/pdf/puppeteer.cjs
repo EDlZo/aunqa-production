@@ -97,6 +97,88 @@ async function generatePDF(data) {
         // Wait for fonts to load
         await page.evaluateHandle('document.fonts.ready');
 
+        // Bake computed styles of rich-content table cells into inline styles
+        // so CSS cascade cannot override what the editor set
+        await page.evaluate(() => {
+            // Convert browser px to pt (browser = 96dpi, print = 72dpi)
+            // But Word's 16pt in browser = 21.3px, we want to keep it as pt
+            // So we convert: pt = px * 72 / 96 = px * 0.75
+            // Then scale down to fit PDF page: Word uses ~16pt for body but PDF uses 10pt
+            // Scale factor: 10/16 = 0.625
+            const pxToPt = (px) => {
+                const num = parseFloat(px);
+                if (isNaN(num)) return null;
+                const pt = num * 0.75; // px to pt
+                // Cap at 16pt max to prevent oversized text in PDF
+                return Math.min(pt, 16).toFixed(1) + 'pt';
+            };
+
+            document.querySelectorAll('.rich-content table td, .rich-content table th').forEach(cell => {
+                const cs = window.getComputedStyle(cell);
+                const existing = cell.getAttribute('style') || '';
+
+                // Parse existing inline style
+                const inlineMap = {};
+                existing.split(';').forEach(rule => {
+                    const idx = rule.indexOf(':');
+                    if (idx === -1) return;
+                    const k = rule.slice(0, idx).trim().toLowerCase();
+                    const v = rule.slice(idx + 1).trim();
+                    if (k && v) inlineMap[k] = v;
+                });
+
+                // Properties to bake (excluding font-size — handle separately)
+                const props = [
+                    'font-weight', 'font-style',
+                    'text-align', 'vertical-align',
+                    'color', 'background-color',
+                    'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
+                    'border-top', 'border-bottom', 'border-left', 'border-right',
+                    'line-height',
+                ];
+                props.forEach(prop => {
+                    if (!inlineMap[prop]) {
+                        const val = cs.getPropertyValue(prop);
+                        if (val) inlineMap[prop] = val;
+                    }
+                });
+
+                // Handle font-size: convert px to pt and cap
+                if (!inlineMap['font-size']) {
+                    const fsPt = pxToPt(cs.getPropertyValue('font-size'));
+                    if (fsPt) inlineMap['font-size'] = fsPt;
+                } else {
+                    // If editor set font-size in pt already, keep it but cap at 14pt
+                    const existing_fs = inlineMap['font-size'];
+                    if (existing_fs.endsWith('pt')) {
+                        const val = parseFloat(existing_fs);
+                        if (!isNaN(val)) inlineMap['font-size'] = Math.min(val, 16).toFixed(1) + 'pt';
+                    } else if (existing_fs.endsWith('px')) {
+                        const fsPt = pxToPt(existing_fs);
+                        if (fsPt) inlineMap['font-size'] = fsPt;
+                    }
+                }
+
+                cell.setAttribute('style', Object.entries(inlineMap).map(([k, v]) => `${k}:${v}`).join(';'));
+
+                // Reset <p> tags inside cells — remove text-indent and margin added by .rich-content p
+                cell.querySelectorAll('p').forEach(p => {
+                    const ps = p.getAttribute('style') || '';
+                    const pm = {};
+                    ps.split(';').forEach(rule => {
+                        const idx = rule.indexOf(':');
+                        if (idx === -1) return;
+                        const k = rule.slice(0, idx).trim().toLowerCase();
+                        const v = rule.slice(idx + 1).trim();
+                        if (k && v) pm[k] = v;
+                    });
+                    pm['text-indent'] = '0';
+                    pm['margin'] = '0';
+                    p.setAttribute('style', Object.entries(pm).map(([k, v]) => `${k}:${v}`).join(';'));
+                });
+            });
+        });
+
         const pdfBuffer = await page.pdf({
             preferCSSPageSize: true, // Crucial for mixed orientation support
             printBackground: true,

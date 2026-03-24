@@ -52,31 +52,24 @@ li,
 
 /* Ensure content within landscape section handles the width correctly */
 .landscape-section .rich-content {
-    text-align: left !important; /* Avoid Thai justification issues in landscape */
+    text-align: left;
 }
 
 .landscape-section .rich-content table {
     width: 100% !important;
-    max-width: 100% !important; 
-    table-layout: auto !important; 
+    max-width: 100% !important;
+    table-layout: auto !important;
     border-collapse: collapse;
     margin-bottom: 10mm;
 }
 
-/* Optimization for large tables in Appendix - slightly smaller font to fit columns */
-.landscape-section table td, 
+/* Optimization for large tables in Appendix */
+.landscape-section table td,
 .landscape-section table th {
-    font-size: 8.5pt !important; 
-    line-height: 1.2;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
+    line-height: 1.4;
+    word-break: normal;
+    overflow-wrap: break-word;
     padding: 3px 4px;
-    width: auto !important; /* Override fixed widths */
-}
-
-.landscape-section table th {
-    background-color: #fce7f3 !important; /* Pink-ish like example */
-    text-align: center;
 }
 
 /* ===== COVER PAGE ===== */
@@ -224,16 +217,10 @@ th,
 td {
     border: 0.5pt solid #555;
     padding: 6px 8px;
-    text-align: left;
     vertical-align: top;
     word-wrap: break-word;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
-}
-
-/* Ensure bottom border always shows on last row */
-.content-table tbody tr:last-child td {
-    border-bottom: 1pt solid #555;
 }
 
 th {
@@ -249,10 +236,9 @@ thead {
 .rich-content table {
     width: 100% !important;
     max-width: 100% !important;
-    border-collapse: collapse;
+    border-collapse: collapse !important;
     margin: 6px 0;
-    font-size: 10pt;
-    table-layout: auto !important; /* Force auto layout to prevent cut-off */
+    table-layout: auto !important;
 }
 
 .rich-content table th,
@@ -260,9 +246,9 @@ thead {
     border: 0.5pt solid #888;
     padding: 4px 8px;
     vertical-align: top;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
-    width: auto !important; /* Override any fixed widths from Quill */
+    word-break: normal;
+    overflow-wrap: break-word;
+    /* inline styles from editor control alignment, color, font-size */
 }
 
 .center {
@@ -281,22 +267,32 @@ thead {
 
 /* ===== RICH CONTENT ===== */
 .rich-content {
-    text-align: justify;
-    font-size: 10pt !important;
+    font-size: 10pt;
     line-height: 1.8;
-    text-indent: 2em;
 }
 
 .rich-content p {
     margin: 0 0 6px 0;
     text-indent: 2em;
-    font-size: 10pt !important;
 }
 
-/* Override any inline font-size from Quill editor */
+/* ไม่มี text-indent ใน table cell */
+.rich-content table td p,
+.rich-content table th p {
+    text-indent: 0;
+    margin: 0;
+}
+
+/* Allow inline styles from editor to take effect — do NOT override font-size, color, background */
 .rich-content * {
-    font-size: 10pt !important;
-    font-family: 'TH Sarabun New', sans-serif !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Ensure table cells inherit base font-size when no inline font-size is set */
+.rich-content table td,
+.rich-content table th {
+    font-size: 12pt;
 }
 
 .rich-content img {
