@@ -46,6 +46,45 @@ export default function RichTextEditor({
   const [selectedCells, setSelectedCells] = useState([]); // cells highlighted for merge
   const isMouseDown = useRef(false);
   const selStartCell = useRef(null);
+  const [tablePickerOpen, setTablePickerOpen] = useState(false);
+  const [tableHover, setTableHover] = useState({ r: 0, c: 0 }); // hovered grid cell
+  const tablePickerRef = useRef(null);
+
+  // Custom undo/redo stack for table operations (DOM mutations bypass browser undo)
+  const undoStack = useRef([]);
+  const redoStack = useRef([]);
+
+  const saveSnapshot = useCallback(() => {
+    const html = editorRef.current?.innerHTML || '';
+    undoStack.current.push(html);
+    if (undoStack.current.length > 100) undoStack.current.shift();
+    redoStack.current = []; // clear redo on new action
+  }, []);
+
+  const customUndo = useCallback(() => {
+    if (undoStack.current.length === 0) {
+      // Fall back to browser undo for typing
+      document.execCommand('undo');
+      return;
+    }
+    const current = editorRef.current?.innerHTML || '';
+    redoStack.current.push(current);
+    const prev = undoStack.current.pop();
+    editorRef.current.innerHTML = prev;
+    onChange && onChange(prev);
+  }, [onChange]);
+
+  const customRedo = useCallback(() => {
+    if (redoStack.current.length === 0) {
+      document.execCommand('redo');
+      return;
+    }
+    const current = editorRef.current?.innerHTML || '';
+    undoStack.current.push(current);
+    const next = redoStack.current.pop();
+    editorRef.current.innerHTML = next;
+    onChange && onChange(next);
+  }, [onChange]);
 
   useEffect(() => {
     const el = editorRef.current;
@@ -55,6 +94,31 @@ export default function RichTextEditor({
       el.innerHTML = value || '';
     }
   }, [value]);
+
+  // Intercept Ctrl+Z / Ctrl+Y to use custom stack when it has entries
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    const onKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        if (undoStack.current.length > 0) {
+          e.preventDefault();
+          customUndo();
+        }
+        // else let browser handle it
+      } else if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))
+      ) {
+        if (redoStack.current.length > 0) {
+          e.preventDefault();
+          customRedo();
+        }
+      }
+    };
+    el.addEventListener('keydown', onKeyDown);
+    return () => el.removeEventListener('keydown', onKeyDown);
+  }, [customUndo, customRedo]);
 
   const handleInput = () => {
     const html = editorRef.current?.innerHTML || '';
@@ -142,6 +206,7 @@ export default function RichTextEditor({
   const mergeCells = () => {
     const cells = editorRef.current?.querySelectorAll('td.rte-sel,th.rte-sel') || [];
     if (cells.length < 2) { alert('เลือก cell อย่างน้อย 2 cell เพื่อผสาน'); return; }
+    saveSnapshot();
     const table = cells[0].closest('table');
 
     // Build grid to find bounding box
@@ -216,6 +281,8 @@ export default function RichTextEditor({
     const rs = cell.rowSpan || 1;
     const cs = cell.colSpan || 1;
     if (rs === 1 && cs === 1) { alert('cell นี้ไม่ได้ถูกผสาน'); return; }
+
+    saveSnapshot();
 
     const table = cell.closest('table');
     const tr = cell.parentElement;
@@ -437,6 +504,7 @@ export default function RichTextEditor({
 
     if (htmlData) {
       e.preventDefault();
+      saveSnapshot();
       const cleaned = cleanWordHtml(htmlData);
 
       // Use DOM insertion directly to avoid browser sanitization from execCommand
@@ -509,9 +577,8 @@ export default function RichTextEditor({
     reader.readAsDataURL(file);
   };
 
-  const insertTable = () => {
-    const rows = Math.min(20, Math.max(1, Number(window.prompt('จำนวนแถว:', '2')) || 2));
-    const cols = Math.min(20, Math.max(1, Number(window.prompt('จำนวนคอลัมน์:', '2')) || 2));
+  const insertTable = (rows, cols) => {
+    saveSnapshot();
     const table = document.createElement('table');
     table.style.borderCollapse = 'collapse';
     table.style.width = '100%';
@@ -530,7 +597,20 @@ export default function RichTextEditor({
     editorRef.current?.focus();
     document.execCommand('insertHTML', false, table.outerHTML);
     handleInput();
+    setTablePickerOpen(false);
   };
+
+  // Close table picker when clicking outside
+  useEffect(() => {
+    if (!tablePickerOpen) return;
+    const handler = (e) => {
+      if (tablePickerRef.current && !tablePickerRef.current.contains(e.target)) {
+        setTablePickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [tablePickerOpen]);
 
   const tableOp = (op) => {
     editorRef.current?.focus();
@@ -544,6 +624,8 @@ export default function RichTextEditor({
       alert('กรุณาวางเคอร์เซอร์ในตารางเพื่อใช้งาน');
       return;
     }
+
+    saveSnapshot();
 
     const cell = node;
     const tr = cell.parentNode;
@@ -594,6 +676,7 @@ export default function RichTextEditor({
   };
 
   const applyCellBg = (color) => {
+    saveSnapshot();
     // Apply to all rte-sel cells, or fallback to cursor cell
     const selCells = editorRef.current?.querySelectorAll('td.rte-sel,th.rte-sel') || [];
     if (selCells.length > 0) {
@@ -644,7 +727,49 @@ export default function RichTextEditor({
           <span className="mx-1 w-px h-5 bg-gray-300" />
           <IconBtn title="ใส่ลิงก์" onClick={promptLink}><LinkIcon size={16} /></IconBtn>
           <IconBtn title="รูปภาพ" onClick={insertImageFromDevice}><ImageIcon size={16} /></IconBtn>
-          <IconBtn title="สร้างตาราง" onClick={insertTable}><TableIcon size={16} /></IconBtn>
+
+          {/* Table grid picker — like Word */}
+          <div ref={tablePickerRef} className="relative">
+            <button
+              type="button"
+              title="สร้างตาราง"
+              onClick={() => setTablePickerOpen(v => !v)}
+              className="p-1.5 hover:bg-blue-100 rounded text-gray-700 flex items-center gap-0.5"
+            >
+              <TableIcon size={16} />
+            </button>
+            {tablePickerOpen && (
+              <div
+                className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded shadow-lg p-2 select-none"
+                onMouseLeave={() => setTableHover({ r: 0, c: 0 })}
+              >
+                <div className="text-xs text-center text-gray-500 mb-1">
+                  {tableHover.r > 0 && tableHover.c > 0
+                    ? `${tableHover.r} × ${tableHover.c}`
+                    : 'เลือกขนาดตาราง'}
+                </div>
+                <div className="grid gap-[2px]" style={{ gridTemplateColumns: 'repeat(10, 16px)' }}>
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const r = Math.floor(i / 10) + 1;
+                    const c = (i % 10) + 1;
+                    const active = r <= tableHover.r && c <= tableHover.c;
+                    return (
+                      <div
+                        key={i}
+                        onMouseEnter={() => setTableHover({ r, c })}
+                        onClick={() => insertTable(tableHover.r, tableHover.c)}
+                        className={`w-4 h-4 border cursor-pointer rounded-sm transition-colors ${
+                          active
+                            ? 'bg-blue-400 border-blue-500'
+                            : 'bg-gray-100 border-gray-300 hover:bg-blue-100'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="relative group ml-auto flex items-center bg-blue-50 px-2 rounded-lg border border-blue-200">
             <span className="text-[10px] font-bold text-blue-600 mr-2 uppercase tracking-tighter">จัดการตาราง</span>
@@ -671,8 +796,8 @@ export default function RichTextEditor({
           </div>
 
           <span className="mx-1 w-px h-5 bg-gray-300" />
-          <IconBtn title="ย้อนกลับ (Ctrl+Z)" onClick={() => apply('undo')}><Undo2 size={16} /></IconBtn>
-          <IconBtn title="ทำซ้ำ (Ctrl+Y)" onClick={() => apply('redo')}><Redo2 size={16} /></IconBtn>
+          <IconBtn title="ย้อนกลับ (Ctrl+Z)" onClick={customUndo}><Undo2 size={16} /></IconBtn>
+          <IconBtn title="ทำซ้ำ (Ctrl+Y)" onClick={customRedo}><Redo2 size={16} /></IconBtn>
           <span className="mx-1 w-px h-5 bg-gray-300" />
         </div>
       )}

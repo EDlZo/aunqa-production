@@ -128,7 +128,7 @@ function renderTemplate(html, data) {
             return data.components.map((comp, compIdx) => {
                 let compHtml = compTemplate;
                 compHtml = compHtml.replace(/{{quality_name}}/g, comp.quality_name || '');
-                // Add 'first-component' class to first component so it stays on same page as chapter banner
+                compHtml = compHtml.replace(/{{comp_index}}/g, String(compIdx));
                 compHtml = compHtml.replace(/class="component-section"/, compIdx === 0 ? 'class="component-section first-component"' : 'class="component-section"');
 
                 const indicators = comp.indicators || [];

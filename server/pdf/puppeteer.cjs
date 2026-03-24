@@ -91,11 +91,85 @@ async function generatePDF(data) {
         }
 
         const finalHtml = renderTemplate(htmlWithStyles, data);
+        console.log('[PDF] renderTemplate done, html length:', finalHtml.length);
 
         await page.setContent(finalHtml, { waitUntil: 'networkidle0' });
+        console.log('[PDF] setContent done');
 
         // Wait for fonts to load
         await page.evaluateHandle('document.fonts.ready');
+        console.log('[PDF] fonts ready');
+
+        // Emulate print media so @page CSS applies during measurement
+        await page.emulateMediaType('print');
+        console.log('[PDF] emulateMediaType done');
+
+        // A4 full page height at 96dpi: 297mm * 96/25.4 ≈ 1122.52px
+        const PAGE_HEIGHT_PX = (297 / 25.4) * 96;
+
+        // Inject TOC page numbers — accounts for CSS page-break-before: always
+        try {
+            console.log('[TOC] Starting page number injection...');
+
+            await page.evaluate((pageH) => {
+                // In Puppeteer's print layout, page-break-before/after:always does NOT
+                // add pixel height to the DOM. We must count forced breaks manually.
+                // Avoid double-counting: if prev element had page-break-after, skip page-break-before.
+
+                const allEls = Array.from(document.querySelectorAll('*'));
+                const pageNumMap = new Map(); // element → page number it starts on
+                let currentPage = 1;
+                let lastHadBreakAfter = false;
+
+                for (const el of allEls) {
+                    const cs = window.getComputedStyle(el);
+                    const pbBefore = cs.getPropertyValue('page-break-before') || cs.getPropertyValue('break-before') || '';
+                    const hasBefore = pbBefore === 'always' || pbBefore === 'page';
+                    // Only count page-break-before if previous element didn't already break after
+                    if (hasBefore && !lastHadBreakAfter) currentPage++;
+
+                    pageNumMap.set(el, currentPage);
+
+                    const pbAfter = cs.getPropertyValue('page-break-after') || cs.getPropertyValue('break-after') || '';
+                    const hasAfter = pbAfter === 'always' || pbAfter === 'page';
+                    if (hasAfter) currentPage++;
+                    lastHadBreakAfter = hasAfter;
+                }
+
+                document.querySelectorAll('[data-target]').forEach(numEl => {
+                    const targetId = numEl.getAttribute('data-target');
+                    const target = document.getElementById(targetId);
+                    if (!target) { numEl.textContent = '?'; return; }
+
+                    // Base page from forced breaks
+                    const basePage = pageNumMap.get(target) || 1;
+
+                    // Raw offsetTop within its local stacking context (for content within same page)
+                    let rawTop = 0;
+                    let el = target;
+                    while (el && el !== document.body) {
+                        rawTop += el.offsetTop || 0;
+                        el = el.offsetParent;
+                    }
+                    const pageOffset = Math.floor(rawTop / pageH);
+
+                    numEl.textContent = String(basePage + pageOffset);
+                });
+            }, PAGE_HEIGHT_PX);
+
+            // Log TOC results for debugging (includes raw position info)
+            const tocResults = await page.evaluate(() => {
+                const items = Array.from(document.querySelectorAll('[data-target]'));
+                return items.map(el => ({
+                    target: el.getAttribute('data-target'),
+                    page: el.textContent,
+                    found: !!document.getElementById(el.getAttribute('data-target'))
+                }));
+            });
+            console.log('[TOC] results:', JSON.stringify(tocResults));
+        } catch (tocErr) {
+            console.error('[TOC] evaluate error:', tocErr.message);
+        }
 
         // Bake computed styles of rich-content table cells into inline styles
         // so CSS cascade cannot override what the editor set

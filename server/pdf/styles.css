@@ -637,3 +637,79 @@ thead {
 .swot-content {
     margin-left: 8px;
 }
+
+/* ===== TABLE OF CONTENTS ===== */
+.toc-page {
+    min-height: 230mm;
+    display: block;
+    text-align: left;
+    page-break-after: always;
+}
+
+.toc-title {
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 12mm;
+    color: #1a1a1a;
+}
+
+.toc-header-row {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 4mm;
+    border-bottom: 0.5pt solid #555;
+    padding-bottom: 2mm;
+}
+
+.toc-page-label {
+    min-width: 20mm;
+    text-align: right;
+}
+
+.toc-entries {
+    width: 100%;
+}
+
+.toc-entry {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 3mm;
+    font-size: 11pt;
+    line-height: 1.6;
+}
+
+.toc-section-entry {
+    font-weight: bold;
+    margin-top: 3mm;
+}
+
+.toc-sub-entry {
+    padding-left: 10mm;
+    font-weight: normal;
+}
+
+.toc-text {
+    flex-shrink: 0;
+    max-width: 75%;
+    white-space: normal;
+}
+
+.toc-dots {
+    flex: 1;
+    border-bottom: 1pt dotted #555;
+    margin: 0 3mm 3pt 3mm;
+    min-width: 5mm;
+}
+
+.toc-num {
+    min-width: 12mm;
+    text-align: right;
+    font-weight: normal;
+    flex-shrink: 0;
+    color: #000;
+    white-space: nowrap;
+    overflow: visible;
+}

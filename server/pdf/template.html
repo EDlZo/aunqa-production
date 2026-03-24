@@ -23,22 +23,76 @@
         </div>
     </section>
 
+    <!-- TABLE OF CONTENTS (page numbers injected by puppeteer.cjs) -->
+    <section class="cover-page toc-page" id="toc-section">
+        <h2 class="toc-title">สารบัญ</h2>
+        <div class="toc-header-row"><span></span><span class="toc-page-label">หน้า</span></div>
+        <div class="toc-entries" id="toc-entries">
+            <div class="toc-entry toc-section-entry">
+                <span class="toc-text">ส่วนที่ 1 ข้อมูลทั่วไป</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-1"></span>
+            </div>
+            <div class="toc-entry toc-sub-entry">
+                <span class="toc-text">ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-1-uni"></span>
+            </div>
+            <div class="toc-entry toc-sub-entry">
+                <span class="toc-text">ข้อมูลทั่วไปเกี่ยวกับหลักสูตร</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-1-prog"></span>
+            </div>
+            <div class="toc-entry toc-section-entry">
+                <span class="toc-text">ส่วนที่ 2 ผลการดำเนินงานตามตัวบ่งชี้</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-2"></span>
+            </div>
+            {{#components}}
+            <div class="toc-entry toc-sub-entry">
+                <span class="toc-text">{{quality_name}}</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="comp-{{comp_index}}"></span>
+            </div>
+            {{/components}}
+            <div class="toc-entry toc-section-entry">
+                <span class="toc-text">ส่วนที่ 3 : สรุปผลการประเมินตนเอง</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-3"></span>
+            </div>
+            <div class="toc-entry toc-sub-entry">
+                <span class="toc-text">ผลการประเมินตนเองตามเกณฑ์ AUN-QA</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-3-summary"></span>
+            </div>
+            <div class="toc-entry toc-sub-entry">
+                <span class="toc-text">จุดเด่น จุดที่ควรพัฒนา และแผนพัฒนา</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-3-swot"></span>
+            </div>
+            <div class="toc-entry toc-section-entry">
+                <span class="toc-text">ส่วนที่ 4 : ภาคผนวก</span>
+                <span class="toc-dots"></span>
+                <span class="toc-num" data-target="section-4"></span>
+            </div>
+        </div>
+    </section>
+
     <!-- CHAPTER 1: General Info -->
-    <section class="chapter">
+    <section class="chapter" id="section-1">
         <div class="chapter-banner">ส่วนที่ 1 : ข้อมูลทั่วไป</div>
-        <div class="section-highlight">ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย</div>
+        <div class="section-highlight" id="section-1-uni">ข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย</div>
         <div class="rich-content">{{{university_info}}}</div>
-        <div class="section-highlight">ข้อมูลทั่วไปเกี่ยวกับหลักสูตร</div>
+        <div class="section-highlight" id="section-1-prog">ข้อมูลทั่วไปเกี่ยวกับหลักสูตร</div>
         <div class="rich-content">{{{program_info}}}</div>
     </section>
 
     <!-- CHAPTER 2: AUN-QA Performance -->
-    <section class="chapter">
+    <section class="chapter" id="section-2">
         <div class="chapter-banner">ส่วนที่ 2 : ผลการดำเนินงานตามเกณฑ์ AUN-QA</div>
 
-
         {{#components}}
-        <div class="component-section">
+        <div class="component-section" id="comp-{{comp_index}}">
 
             <!-- ชื่อเกณฑ์หลัก เช่น "เกณฑ์คุณภาพที่ 1 ..." -->
             <div class="component-heading">{{quality_name}}</div>
@@ -136,9 +190,9 @@
     </section>
 
     <!-- CHAPTER 3: Summary -->
-    <section class="chapter">
+    <section class="chapter" id="section-3">
         <div class="chapter-banner">ส่วนที่ 3 : สรุปผลการประเมินตนเอง</div>
-        <div style="font-size: 12pt; font-weight: bold; margin-bottom: 5px;">
+        <div id="section-3-summary" style="font-size: 12pt; font-weight: bold; margin-bottom: 5px;">
             ผลการประเมินตนเองตามเกณฑ์ AUN-QA
 
         </div>
@@ -182,7 +236,7 @@
 
         <div style="page-break-before: always;"></div>
 
-        <div style="font-size: 12pt; font-weight: bold; margin-top: 10px; margin-bottom: 5px;">จุดเด่น จุดที่ควรพัฒนา
+        <div id="section-3-swot" style="font-size: 12pt; font-weight: bold; margin-top: 10px; margin-bottom: 5px;">จุดเด่น จุดที่ควรพัฒนา
             และแผนพัฒนา</div>
         <table class="aun-swot-table">
             <thead>
@@ -227,7 +281,7 @@
     </section>
 
     <!-- CHAPTER 4: Appendix -->
-    <section class="chapter landscape-section">
+    <section class="chapter landscape-section" id="section-4">
         <div class="chapter-banner">ส่วนที่ 4 : ภาคผนวก</div>
         <div class="section-highlight">ตารางประกอบการเก็บข้อมูลการประเมินระดับหลักสูตร</div>
         <div class="rich-content">{{{appendix}}}</div>

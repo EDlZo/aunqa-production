@@ -564,7 +564,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
             value={esarData.universityInfo || ''}
             onChange={val => setEsarData({ ...esarData, universityInfo: val })}
             placeholder="ระบุข้อมูลทั่วไปเกี่ยวกับมหาวิทยาลัย..."
-            minHeight={250}
+            minHeight={500}
+            pageMode={true}
           />
         </div>
         <div>
@@ -573,7 +574,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
             value={esarData.programInfo || ''}
             onChange={val => setEsarData({ ...esarData, programInfo: val })}
             placeholder="ระบุข้อมูลทั่วไปเกี่ยวกับหลักสูตร..."
-            minHeight={250}
+            minHeight={500}
+            pageMode={true}
           />
         </div>
       </div>

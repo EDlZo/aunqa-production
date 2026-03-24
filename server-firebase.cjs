@@ -14,10 +14,10 @@ const admin = require('firebase-admin');
 // Supabase Client
 const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Supabase
+// Initialize Supabase with service role key (bypasses RLS for server-side uploads)
 const supabase = createClient(
   process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'placeholder-key'
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'placeholder-key'
 );
 
 console.log('✅ Supabase client initialized');
