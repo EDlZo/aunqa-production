@@ -16,6 +16,9 @@ function renderIndicator(template, ind) {
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
 
+        // Remove font-family inline styles that may override the injected Sarabun font
+        t = t.replace(/font-family\s*:[^;"]*/gi, '');
+
         return t;
     };
 
@@ -110,6 +113,10 @@ function renderTemplate(html, data) {
         const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
+
+        // Remove font-family inline styles that may override the injected Sarabun font
+        // This prevents Thai text from disappearing due to unknown font references
+        t = t.replace(/font-family\s*:[^;"]*/gi, '');
 
         return t;
     };
