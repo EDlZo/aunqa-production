@@ -505,8 +505,8 @@ export default function ReportsPage({ setActiveTab: setAppActiveTab }) {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ตัวบ่งชี้</th>
-                      <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider ">ตัวบ่งชี้</th>
+                      <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ <br /> ผลดำเนินงาน</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
