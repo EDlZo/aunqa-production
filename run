@@ -1,0 +1,3 @@
+npm run dev 
+npm run server 
+C:\minio\minio.exe server C:\minio\data --console-address ":9001"

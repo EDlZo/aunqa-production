@@ -100,7 +100,7 @@ async function generatePDF(data) {
         await page.evaluateHandle('document.fonts.ready');
         console.log('[PDF] fonts ready');
 
-        // Emulate print media so @page CSS applies during measurement
+        // Emulate print media BEFORE layout so @page and print CSS applies correctly
         await page.emulateMediaType('print');
         console.log('[PDF] emulateMediaType done');
 
@@ -174,24 +174,17 @@ async function generatePDF(data) {
         // Bake computed styles of rich-content table cells into inline styles
         // so CSS cascade cannot override what the editor set
         await page.evaluate(() => {
-            // Convert browser px to pt (browser = 96dpi, print = 72dpi)
-            // But Word's 16pt in browser = 21.3px, we want to keep it as pt
-            // So we convert: pt = px * 72 / 96 = px * 0.75
-            // Then scale down to fit PDF page: Word uses ~16pt for body but PDF uses 10pt
-            // Scale factor: 10/16 = 0.625
+            // Convert px to pt: 1px = 0.75pt (96dpi screen → 72dpi print)
             const pxToPt = (px) => {
                 const num = parseFloat(px);
                 if (isNaN(num)) return null;
-                const pt = num * 0.75; // px to pt
-                // Cap at 16pt max to prevent oversized text in PDF
-                return Math.min(pt, 16).toFixed(1) + 'pt';
+                return (num * 0.75).toFixed(1) + 'pt';
             };
 
             document.querySelectorAll('.rich-content table td, .rich-content table th').forEach(cell => {
                 const cs = window.getComputedStyle(cell);
                 const existing = cell.getAttribute('style') || '';
 
-                // Parse existing inline style
                 const inlineMap = {};
                 existing.split(';').forEach(rule => {
                     const idx = rule.indexOf(':');
@@ -201,7 +194,6 @@ async function generatePDF(data) {
                     if (k && v) inlineMap[k] = v;
                 });
 
-                // Properties to bake (excluding font-size — handle separately)
                 const props = [
                     'font-weight', 'font-style',
                     'text-align', 'vertical-align',
@@ -217,25 +209,11 @@ async function generatePDF(data) {
                     }
                 });
 
-                // Handle font-size: convert px to pt and cap
-                if (!inlineMap['font-size']) {
-                    const fsPt = pxToPt(cs.getPropertyValue('font-size'));
-                    if (fsPt) inlineMap['font-size'] = fsPt;
-                } else {
-                    // If editor set font-size in pt already, keep it but cap at 14pt
-                    const existing_fs = inlineMap['font-size'];
-                    if (existing_fs.endsWith('pt')) {
-                        const val = parseFloat(existing_fs);
-                        if (!isNaN(val)) inlineMap['font-size'] = Math.min(val, 16).toFixed(1) + 'pt';
-                    } else if (existing_fs.endsWith('px')) {
-                        const fsPt = pxToPt(existing_fs);
-                        if (fsPt) inlineMap['font-size'] = fsPt;
-                    }
-                }
+                // font-size: strip inline font-size — let CSS .rich-content table td { font-size: 10pt } handle it
+                delete inlineMap['font-size'];
 
                 cell.setAttribute('style', Object.entries(inlineMap).map(([k, v]) => `${k}:${v}`).join(';'));
 
-                // Reset <p> tags inside cells — remove text-indent and margin added by .rich-content p
                 cell.querySelectorAll('p').forEach(p => {
                     const ps = p.getAttribute('style') || '';
                     const pm = {};
@@ -250,6 +228,28 @@ async function generatePDF(data) {
                     pm['margin'] = '0';
                     p.setAttribute('style', Object.entries(pm).map(([k, v]) => `${k}:${v}`).join(';'));
                 });
+            });
+
+            // Strip all inline font-size from rich-content elements — let CSS cascade handle sizing
+            const BROWSER_PX_TO_PT = { 10: 7, 13: 8, 16: 10, 18: 12, 24: 14, 32: 16, 48: 18 };
+            document.querySelectorAll('.rich-content span, .rich-content div, .rich-content p, .rich-content font').forEach(el => {
+                const style = el.getAttribute('style');
+                if (!style || !style.includes('font-size')) return;
+                const updated = style.replace(/\s*font-size\s*:[^;}"']+;?/gi, '').trim().replace(/^;+|;+$/g, '');
+                if (updated) el.setAttribute('style', updated);
+                else el.removeAttribute('style');
+            });
+
+            // Handle <font size="N"> attribute — remove it
+            document.querySelectorAll('.rich-content font[size]').forEach(el => {
+                el.removeAttribute('size');
+            });
+
+            // Normalize headings inside rich-content — force to bold 10pt
+            document.querySelectorAll('.rich-content h1, .rich-content h2, .rich-content h3, .rich-content h4, .rich-content h5, .rich-content h6').forEach(el => {
+                const style = el.getAttribute('style') || '';
+                const updated = style.replace(/font-size\s*:[^;]*/gi, '') + ';font-size:10pt;font-weight:bold';
+                el.setAttribute('style', updated.replace(/^;/, ''));
             });
         });
 

@@ -1,8 +1,0 @@
-# Vercel Deployment Ignore
-node_modules
-dist
-uploads/
-⠀⠀⠀⠀/
-.git
-.vercel
-*.log

@@ -405,6 +405,27 @@ export default function RichTextEditor({
     doc.querySelectorAll('*').forEach((el) => {
       const tag = el.tagName.toLowerCase();
 
+      // Detect Wingdings/Symbol font and convert characters to Unicode equivalents
+      const elStyle = el.getAttribute('style') || '';
+      const fontFamilyMatch = elStyle.match(/font-family\s*:\s*([^;,'"]+)/i);
+      const fontName = (fontFamilyMatch ? fontFamilyMatch[1] : '').trim().toLowerCase();
+      if (fontName.includes('wingdings') || fontName.includes('symbol') || fontName.includes('webdings')) {
+        // Wingdings checkmark mappings: ü(0xFC)=✓, þ(0xFE)=✓, ý(0xFD)=✗
+        const wingdingsMap = {
+          '\u00FC': '✓', '\u00FE': '✓', '\u00FD': '✗',
+          '\u00E3': '✓', '\u00E4': '✓',
+        };
+        el.childNodes.forEach(node => {
+          if (node.nodeType === 3) { // text node
+            let text = node.textContent;
+            Object.entries(wingdingsMap).forEach(([from, to]) => {
+              text = text.split(from).join(to);
+            });
+            node.textContent = text;
+          }
+        });
+      }
+
       // Apply colors from class-based styles before removing class
       const cls = el.getAttribute('class') || '';
       if (cls && styleColorMap[cls]) {

@@ -1,6 +1,24 @@
 const fs = require('fs');
 const path = require('path');
 
+function normalizeFontSize(html) {
+    if (!html) return html;
+    let t = html;
+
+    // Strip ALL font-size inline styles — let CSS body { font-size: 10pt } cascade instead.
+    // This is the only reliable way to get consistent sizing across all browser-generated HTML.
+    // Users who want larger text should use the heading/bold options instead.
+    t = t.replace(/\s*font-size\s*:\s*[^;}"']+;?/gi, '');
+
+    // Remove <font size="N"> attribute entirely (browser legacy execCommand output)
+    t = t.replace(/(<font\b[^>]*?)\s+size=["']?\d+["']?/gi, '$1');
+
+    // Clean up empty style attributes left behind
+    t = t.replace(/\s+style=["']\s*;*\s*["']/gi, '');
+
+    return t;
+}
+
 function renderIndicator(template, ind) {
     let t = template;
 
@@ -13,11 +31,42 @@ function renderIndicator(template, ind) {
         const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
         const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
         const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
+
+        // Convert Wingdings-font spans to Unicode BEFORE stripping font-family
+        // Word pastes checkmarks as ü/þ with font-family:Wingdings
+        t = t.replace(/<([a-z][a-z0-9]*)\b([^>]*?style="[^"]*font-family\s*:\s*Wingdings[^"]*"[^>]*)>([\s\S]*?)<\/\1>/gi,
+            (match, tag, attrs, content) => {
+                const converted = content
+                    .replace(/\u00FC/g, '✓').replace(/\u00FE/g, '✓')
+                    .replace(/\u00E3/g, '✓').replace(/\u00E4/g, '✓')
+                    .replace(/\u00FD/g, '✗').replace(/\u00FB/g, '✗');
+                // If content is now just a checkmark, replace whole element with img
+                if (/^[✓✗\s]+$/.test(converted)) return converted;
+                return `<${tag}${attrs}>${converted}</${tag}>`;
+            });
+
+        // Unicode checkmarks
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
+        // Wingdings checkmarks that slipped through (ü/þ without font context)
+        t = t.replace(/[\u00FC\u00FE\u00E3\u00E4]/g, checkmarkHtml);
+        t = t.replace(/\u00FD/g, '✗');
+
+        // Replace arrow/triangle/circle characters unsupported by TH Sarabun New
+        // Wrap in a span with Arial fallback font so the glyph renders correctly
+        const symSpan = (ch) => `<span style="font-family:Arial,sans-serif;">${ch}</span>`;
+        t = t.replace(/[\u25B6\u25BA\u25B8\u25B7]/g, () => symSpan('&#9658;'));  // ▶ filled right
+        t = t.replace(/[\u25C0\u25C4\u25C2\u25C3]/g, () => symSpan('&#9668;'));  // ◀ filled left
+        t = t.replace(/[\u25CF\u2B24\u26AB]/g, () => symSpan('&#9679;'));        // ● filled circle
+        t = t.replace(/[\u25CB\u25E6\u26AA]/g, () => symSpan('&#9675;'));        // ○ empty circle
+        t = t.replace(/\u2022/g, () => symSpan('&bull;'));                        // • bullet
 
         // Remove font-family inline styles that may override the injected Sarabun font
-        t = t.replace(/font-family\s*:[^;"]*/gi, '');
+        // Keep Arial/sans-serif which is used for arrow/symbol fallback spans
+        t = t.replace(/font-family\s*:\s*(?!Arial|sans-serif)[^;"]*/gi, 'font-family: inherit');
+
+        // Normalize font-size using shared helper (handles px, keywords, em, <font size>)
+        t = normalizeFontSize(t);
 
         return t;
     };
@@ -111,12 +160,37 @@ function renderTemplate(html, data) {
         const checkmarkSvg = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iMjAgNiA5IDE3IDQgMTIiPjwvcG9seWxpbmU+PC9zdmc+';
         const checkmarkHtml = `<img src="${checkmarkSvg}" style="width: 10pt; height: 10pt; vertical-align: middle; margin: 0 2px;" />`;
         const boxHtml = '<span class="score-checkbox" style="width: 8pt; height: 8pt; margin: 0 2px; vertical-align: middle;"></span>';
+
+        // Convert Wingdings-font spans to Unicode BEFORE stripping font-family
+        t = t.replace(/<([a-z][a-z0-9]*)\b([^>]*?style="[^"]*font-family\s*:\s*Wingdings[^"]*"[^>]*)>([\s\S]*?)<\/\1>/gi,
+            (match, tag, attrs, content) => {
+                const converted = content
+                    .replace(/\u00FC/g, '✓').replace(/\u00FE/g, '✓')
+                    .replace(/\u00E3/g, '✓').replace(/\u00E4/g, '✓')
+                    .replace(/\u00FD/g, '✗').replace(/\u00FB/g, '✗');
+                if (/^[✓✗\s]+$/.test(converted)) return converted;
+                return `<${tag}${attrs}>${converted}</${tag}>`;
+            });
+
         t = t.replace(/[\u2713\u2714\u2611\u2705\u2612]/g, checkmarkHtml);
         t = t.replace(/[\u2610\u25A1]/g, boxHtml);
+        t = t.replace(/[\u00FC\u00FE\u00E3\u00E4]/g, checkmarkHtml);
+        t = t.replace(/\u00FD/g, '✗');
+
+        // Replace arrow/triangle/circle characters unsupported by TH Sarabun New
+        const symSpan = (ch) => `<span style="font-family:Arial,sans-serif;">${ch}</span>`;
+        t = t.replace(/[\u25B6\u25BA\u25B8\u25B7]/g, () => symSpan('&#9658;'));
+        t = t.replace(/[\u25C0\u25C4\u25C2\u25C3]/g, () => symSpan('&#9668;'));
+        t = t.replace(/[\u25CF\u2B24\u26AB]/g, () => symSpan('&#9679;'));
+        t = t.replace(/[\u25CB\u25E6\u26AA]/g, () => symSpan('&#9675;'));
+        t = t.replace(/\u2022/g, () => symSpan('&bull;'));
 
         // Remove font-family inline styles that may override the injected Sarabun font
-        // This prevents Thai text from disappearing due to unknown font references
-        t = t.replace(/font-family\s*:[^;"]*/gi, '');
+        // Keep Arial/sans-serif which is used for arrow/symbol fallback spans
+        t = t.replace(/font-family\s*:\s*(?!Arial|sans-serif)[^;"]*/gi, 'font-family: inherit');
+
+        // Normalize font-size using shared helper (handles px, keywords, em, <font size>)
+        t = normalizeFontSize(t);
 
         return t;
     };

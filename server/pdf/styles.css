@@ -237,7 +237,7 @@ thead {
     width: 100% !important;
     max-width: 100% !important;
     border-collapse: collapse !important;
-    margin: 6px 0;
+    margin: 12px 0 6px 0;
     table-layout: auto !important;
 }
 
@@ -271,6 +271,15 @@ thead {
     line-height: 1.8;
 }
 
+/* Force all text elements in rich-content to use 10pt — inline font-size is stripped by render.cjs */
+.rich-content p,
+.rich-content div,
+.rich-content span,
+.rich-content li,
+.rich-content font {
+    font-size: 10pt;
+}
+
 .rich-content p {
     margin: 0 0 6px 0;
     text-indent: 2em;
@@ -289,17 +298,30 @@ thead {
     print-color-adjust: exact;
 }
 
+/* Normalize <font> tags from execCommand output — font-size handled by render.cjs */
+.rich-content font {
+    font-family: inherit !important;
+}
+
+/* Cap any inline font-size that slips through — headings inside rich content */
+.rich-content h1, .rich-content h2, .rich-content h3,
+.rich-content h4, .rich-content h5, .rich-content h6 {
+    font-size: 10pt !important;
+    font-weight: bold;
+    margin: 4px 0;
+}
+
 /* Ensure table cells inherit base font-size when no inline font-size is set */
 .rich-content table td,
 .rich-content table th {
-    font-size: 12pt;
+    font-size: 10pt;
 }
 
 .rich-content img {
     max-width: 100%;
     height: auto;
     display: block;
-    margin: 8px auto;
+    margin: 8px auto 16px auto;
 }
 
 /* ===== SWOT ===== */
