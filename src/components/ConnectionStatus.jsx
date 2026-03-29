@@ -20,7 +20,7 @@ export default function ConnectionStatus() {
       
       if (response.ok) {
         const data = await response.json();
-        setStatus(data.firebase ? 'online' : 'limited');
+        setStatus(data.db ? 'online' : 'limited');
       } else {
         setStatus('offline');
       }
