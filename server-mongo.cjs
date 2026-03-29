@@ -981,13 +981,27 @@ app.delete('/api/rounds/:id', async (req, res) => {
 // ================= PUBLIC STATS =================
 app.get('/api/public-stats', async (req, res) => {
   try {
-    const [programs, indicators, evaluations] = await Promise.all([
-      Program.countDocuments(),
+    const [userCount, indicatorCount, approvedEvals] = await Promise.all([
+      User.countDocuments(),
       Indicator.countDocuments(),
-      EvaluationActual.countDocuments({ status: 'approved' }),
+      EvaluationActual.find({ status: 'approved' }),
     ]);
-    res.json({ programs, indicators, evaluations });
-  } catch (err) { res.json({ programs: 0, indicators: 0, evaluations: 0 }); }
+
+    let averageScore = 0;
+    if (approvedEvals.length > 0) {
+      const sum = approvedEvals.reduce((acc, curr) => acc + (curr.operation_score || 0), 0);
+      averageScore = (sum / approvedEvals.length).toFixed(1);
+    }
+
+    res.json({
+      userCount,
+      indicatorCount,
+      averageScore: String(averageScore),
+      topComponents: [] // Initialize as empty for now to satisfy HeroSection
+    });
+  } catch (err) {
+    res.json({ userCount: 0, indicatorCount: 0, averageScore: "0.0", topComponents: [] });
+  }
 });
 
 // ================= RESET ASSESSMENT DATA =================

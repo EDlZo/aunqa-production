@@ -535,7 +535,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
       const override = metadataOverrides[f];
       const pendingIndex = isPending ? parseInt(f.match(/pending_(\d+)_/)?.[1] || '0') : -1;
       const pendingItem = isPending ? pendingEvidenceFiles[pendingIndex] : null;
-      
+
       return {
         filename: f,
         meta: override || meta[f] || {},
@@ -626,7 +626,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 disabled={readOnly}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-purple-500" />
@@ -665,25 +665,25 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
               )}
             </label>
 
-            <div className="border border-gray-200 rounded-2xl overflow-hidden">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 border-b border-gray-200">
+            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-2">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="bg-gray-50/50">
                   <tr>
-                    <th className="px-4 py-2 font-bold text-gray-600 w-16 text-center">No.</th>
-                    <th className="px-4 py-2 font-bold text-gray-600">ชื่อเอกสาร</th>
-                    <th className="px-4 py-2 font-bold text-gray-600">ประเภท/ลิงก์</th>
-                    <th className="px-4 py-2 font-bold text-gray-600 w-16 text-center">ลบ</th>
+                    <th className="px-4 py-2.5 font-bold text-gray-600 w-16 text-center border-none">ลำดับ</th>
+                    <th className="px-4 py-2.5 font-bold text-gray-600 border-none">ชื่อเอกสาร</th>
+                    <th className="px-4 py-2.5 font-bold text-gray-600 border-none">ไฟล์ / ลิงก์</th>
+                    <th className="px-4 py-2.5 font-bold text-gray-600 w-16 text-center border-none">ลบ</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-50">
                   {latestFiles.length > 0 ? (
                     latestFiles.map((file, index) => (
-                      <tr key={file.filename || index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-center text-gray-500">{file.meta?.number || `${index + 1}`}</td>
-                        <td className="px-4 py-3 font-medium text-gray-800">
+                      <tr key={file.filename || index} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3 text-center text-gray-500 border-none">{file.meta?.number || `${index + 1}`}</td>
+                        <td className="px-4 py-3 font-medium text-gray-800 border-none">
                           {file.meta?.name || file.evidence_name || file.filename}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 border-none">
                           {file.filename.startsWith('url_') || (file.filename.startsWith('pending_') && !file.filename.match(/\.(pdf|jpg|jpeg|png|doc|docx)$/i)) ? (
                             <div className="flex items-center gap-2">
                               {(file.meta?.url || file.evidence_url) ? (
@@ -700,7 +700,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 text-center border-none">
                           {!readOnly && (
                             <div className="flex items-center justify-center gap-2">
                               <button
@@ -715,10 +715,10 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                                   setEvidenceNumber(file.evidence_number || '');
                                   setEvidenceName(file.evidence_name || '');
                                   setEvidenceUrl(file.meta?.url || file.evidence_url || '');
-                                  
+
                                   const isUrl = file.filename.startsWith('url_') || (file.isPending && !file.rawPending?.file);
                                   setEvidenceType(isUrl ? 'url' : 'file');
-                                  
+
                                   // Populate evidenceFiles for display in modal
                                   if (!isUrl) {
                                     if (file.isPending && file.rawPending?.file) {
@@ -905,7 +905,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                 {editingEvidence ? <Pencil className="w-4 h-4 text-blue-600" /> : <Plus className="w-4 h-4 text-blue-600" />}
                 {editingEvidence ? 'แก้ไขรายละเอียดหลักฐาน' : 'เพิ่มรายละเอียดหลักฐาน'}
               </h4>
-              <button 
+              <button
                 onClick={() => {
                   setShowEvidenceModal(false);
                   setEditingEvidence(null);
@@ -913,7 +913,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                   setEvidenceName('');
                   setEvidenceFiles([]);
                   setEvidenceUrl('');
-                }} 
+                }}
                 className="bg-gray-50 p-1 rounded-full shadow-sm text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -1087,7 +1087,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                     };
                     setPendingEvidenceFiles(prev => [...prev, newEvidence]);
                   }
-                  
+
                   setEditingEvidence(null);
                   setEvidenceNumber('');
                   setEvidenceName('');

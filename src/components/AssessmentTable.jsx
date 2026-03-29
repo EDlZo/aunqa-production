@@ -218,7 +218,11 @@ export default function AssessmentTable({ selectedComponent, indicators, selecte
 
   const baseIndicatorList = indicatorList;
   const filteredIndicatorList = mode === 'evaluation'
-    ? baseIndicatorList.filter(ind => criteriaCompletedIds.has(String(ind.id)))
+    ? baseIndicatorList.filter(ind => {
+      const seq = String(ind.sequence || '');
+      // แสดงตัวหลัก (1, 2, 3) เสมอ และแสดงตัวย่อยเฉพาะที่กำหนดเกณฑ์แล้ว
+      return !seq.includes('.') || criteriaCompletedIds.has(String(ind.id));
+    })
     : baseIndicatorList;
 
   return (

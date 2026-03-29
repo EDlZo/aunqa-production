@@ -370,7 +370,7 @@ export default function SummaryPage({ currentUser }) {
                   <Star className="w-5 h-5 text-blue-600" />
                   <h3 className="text-lg font-bold text-gray-900">ผลการประเมินโดยกรรมการ</h3>
                 </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-6 grid grid-cols-1 gap-4">
                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คะแนนประเมิน</div>
                     <div className="text-3xl font-black text-gray-800">{isMain ? '' : (committee.committee_score || '-')}</div>
@@ -762,11 +762,11 @@ export default function SummaryPage({ currentUser }) {
                       <tr key={ind.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-center text-sm font-semibold text-gray-900 border-r border-gray-200">
                           {isMain ? (
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full text-sm font-bold">
+                            <span className="inline-flex items-center justify-center w-7 h-7 bg-red-600 text-white rounded-full text-xs font-bold">
                               {ind.sequence}
                             </span>
                           ) : (
-                            <span>{ind.sequence}</span>
+                            <span className="text-gray-400 text-xs">{String(ind.sequence).replace(/\.0*(\d+)$/, (_, n) => '.' + parseInt(n))}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 border-r border-gray-200 text-left">
