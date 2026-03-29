@@ -1,0 +1,607 @@
+{
+  "info": {
+    "name": "AUNQA-ESAR API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "aunqa-esar-collection"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "major_name", "value": "วิศวกรรมคอมพิวเตอร์", "type": "string" },
+    { "key": "year", "value": "2569", "type": "string" },
+    { "key": "session_id", "value": "", "type": "string" },
+    { "key": "indicator_id", "value": "", "type": "string" },
+    { "key": "component_id", "value": "", "type": "string" },
+    { "key": "program_id", "value": "", "type": "string" },
+    { "key": "round_id", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Login - System Admin",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 200) {",
+            "  const json = pm.response.json();",
+            "  if (json.token) {",
+            "    pm.collectionVariables.set('token', json.token);",
+            "    pm.test('Login success + token saved', () => pm.expect(json.success).to.be.true);",
+            "  }",
+            "}"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/login",
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"admin@example.com\",\n  \"password\": \"yourpassword\",\n  \"role\": \"system_admin\"\n}" }
+          }
+        },
+        {
+          "name": "Login - Reporter",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "if (pm.response.code === 200) {",
+            "  const json = pm.response.json();",
+            "  if (json.token) pm.collectionVariables.set('token', json.token);",
+            "  pm.test('Login success', () => pm.expect(json.success).to.be.true);",
+            "}"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/login",
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"reporter@example.com\",\n  \"password\": \"yourpassword\",\n  \"role\": \"reporter\"\n}" }
+          }
+        },
+        {
+          "name": "Login - Invalid (expect 401)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Should return 401', () => pm.expect(pm.response.code).to.equal(401));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/login",
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"wrong@example.com\",\n  \"password\": \"wrongpassword\",\n  \"role\": \"system_admin\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏥 Health",
+      "item": [
+        {
+          "name": "Ping",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Server OK', () => pm.expect(pm.response.json().ok).to.be.true);",
+            "pm.test('DB connected', () => pm.expect(pm.response.json().db).to.be.true);",
+            "pm.test('Storage is minio', () => pm.expect(pm.response.json().storage).to.equal('minio'));"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "url": "{{base_url}}/api/ping" }
+        }
+      ]
+    },
+    {
+      "name": "👥 Users",
+      "item": [
+        {
+          "name": "GET All Users",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+            "if (pm.response.json().length > 0) pm.collectionVariables.set('user_id', pm.response.json()[0].id);"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{base_url}}/api/users" }
+        },
+        {
+          "name": "POST Create User",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "if (json.id) pm.collectionVariables.set('user_id', json.id);",
+            "pm.test('Has id', () => pm.expect(json).to.have.property('id'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/users",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Test1234!\",\n  \"first_name\": \"ทดสอบ\",\n  \"last_name\": \"ผู้ใช้\",\n  \"role_id\": 3\n}" }
+          }
+        },
+        {
+          "name": "PATCH Update User",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/users/{{user_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"ทดสอบแก้ไข\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE User",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/users/{{user_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏫 Programs",
+      "item": [
+        {
+          "name": "GET All Programs",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+            "if (pm.response.json().length > 0) pm.collectionVariables.set('program_id', pm.response.json()[0].id);"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{base_url}}/api/programs" }
+        },
+        {
+          "name": "POST Create Program",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "if (pm.response.json().id) pm.collectionVariables.set('program_id', pm.response.json().id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/programs",
+            "body": { "mode": "raw", "raw": "{\n  \"majorName\": \"วิศวกรรมคอมพิวเตอร์ TEST\",\n  \"facultyName\": \"วิศวกรรมศาสตร์\",\n  \"levelId\": \"1\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH Update Program",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/programs/{{program_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"majorName\": \"วิศวกรรมคอมพิวเตอร์ (แก้ไข)\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Program",
+          "request": {
+            "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/programs/{{program_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Rounds",
+      "item": [
+        {
+          "name": "GET All Rounds",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const rounds = pm.response.json();",
+            "pm.test('Returns array', () => pm.expect(rounds).to.be.an('array'));",
+            "const active = rounds.find(r => r.is_active);",
+            "if (active) pm.collectionVariables.set('round_id', active.id);"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{base_url}}/api/rounds" }
+        },
+        {
+          "name": "POST Create Round",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "if (pm.response.json().id) pm.collectionVariables.set('round_id', pm.response.json().id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/rounds",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"รอบประเมิน 2569\",\n  \"year\": \"2569\",\n  \"is_active\": true\n}" }
+          }
+        },
+        {
+          "name": "PUT Update Round",
+          "request": {
+            "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/rounds/{{round_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"รอบประเมิน 2569 (แก้ไข)\",\n  \"is_active\": true\n}" }
+          }
+        },
+        {
+          "name": "DELETE Round",
+          "request": {
+            "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/rounds/{{round_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧩 Quality Components",
+      "item": [
+        {
+          "name": "GET Components",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const comps = pm.response.json();",
+            "pm.test('Returns array', () => pm.expect(comps).to.be.an('array'));",
+            "if (comps.length > 0) pm.collectionVariables.set('component_id', comps[0].id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/quality-components?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","quality-components"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Create Component",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);",
+            "if (pm.response.json().id) pm.collectionVariables.set('component_id', pm.response.json().id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/quality-components",
+            "body": { "mode": "raw", "raw": "{\n  \"quality_name\": \"AUN.1 Expected Learning Outcomes\",\n  \"component_id\": 1,\n  \"major_name\": \"{{major_name}}\",\n  \"year\": \"{{year}}\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH Update Component",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/quality-components/{{component_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"quality_name\": \"AUN.1 Expected Learning Outcomes (แก้ไข)\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Component (cascade)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/quality-components/{{component_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📌 Indicators",
+      "item": [
+        {
+          "name": "GET Indicators",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const inds = pm.response.json();",
+            "pm.test('Returns array', () => pm.expect(inds).to.be.an('array'));",
+            "if (inds.length > 0) pm.collectionVariables.set('indicator_id', inds[0].id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/indicators?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","indicators"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "GET Indicators by Component",
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/indicators-by-component/1?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","indicators-by-component","1"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Create Indicator",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "if (pm.response.json().id) pm.collectionVariables.set('indicator_id', pm.response.json().id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/indicators",
+            "body": { "mode": "raw", "raw": "{\n  \"component_id\": 1,\n  \"sequence\": \"1.1\",\n  \"indicator_name\": \"ตัวบ่งชี้ทดสอบ\",\n  \"major_name\": \"{{major_name}}\",\n  \"year\": \"{{year}}\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH Update Indicator",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/indicators/{{indicator_id}}",
+            "body": { "mode": "raw", "raw": "{\n  \"indicator_name\": \"ตัวบ่งชี้ทดสอบ (แก้ไข)\"\n}" }
+          }
+        },
+        {
+          "name": "DELETE Indicator",
+          "request": {
+            "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/indicators/{{indicator_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Bulk & Session",
+      "item": [
+        {
+          "name": "GET Session Summary",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "const json = pm.response.json();",
+            "pm.test('Has components', () => pm.expect(json).to.have.property('components'));",
+            "pm.test('Has indicators', () => pm.expect(json).to.have.property('indicators'));",
+            "pm.test('Has evaluations_actual', () => pm.expect(json).to.have.property('evaluations_actual'));",
+            "if (json.assessment_sessions && json.assessment_sessions.length > 0)",
+            "  pm.collectionVariables.set('session_id', json.assessment_sessions[0].id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/bulk/session-summary?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","bulk","session-summary"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Create Assessment Session",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has session_id', () => pm.expect(pm.response.json()).to.have.property('session_id'));",
+            "pm.collectionVariables.set('session_id', pm.response.json().session_id);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/assessment-sessions",
+            "body": { "mode": "raw", "raw": "{\n  \"level_id\": \"1\",\n  \"faculty_id\": \"1\",\n  \"faculty_name\": \"วิศวกรรมศาสตร์\",\n  \"major_id\": \"1\",\n  \"major_name\": \"{{major_name}}\",\n  \"evaluator_id\": \"user_id_here\"\n}" }
+          }
+        },
+        {
+          "name": "GET Latest Session",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has session_id', () => pm.expect(pm.response.json()).to.have.property('session_id'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/assessment-sessions/latest?major_name={{major_name}}", "host": ["{{base_url}}"], "path": ["api","assessment-sessions","latest"], "query": [{ "key": "major_name", "value": "{{major_name}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Evaluations Actual",
+      "item": [
+        {
+          "name": "GET History",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/evaluations-actual/history?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","evaluations-actual","history"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Save Evaluation (no file)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/evaluations-actual",
+            "body": { "mode": "formdata", "formdata": [
+              { "key": "session_id", "value": "{{session_id}}", "type": "text" },
+              { "key": "indicator_id", "value": "{{indicator_id}}", "type": "text" },
+              { "key": "major_name", "value": "{{major_name}}", "type": "text" },
+              { "key": "year", "value": "{{year}}", "type": "text" },
+              { "key": "operation_result", "value": "<p>ผลการดำเนินงานทดสอบ</p>", "type": "text" },
+              { "key": "operation_score", "value": "3", "type": "text" }
+            ]}
+          }
+        },
+        {
+          "name": "POST Save Evaluation (with PDF file)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has evidence_files', () => pm.expect(pm.response.json()).to.have.property('evidence_files'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/evaluations-actual",
+            "body": { "mode": "formdata", "formdata": [
+              { "key": "session_id", "value": "{{session_id}}", "type": "text" },
+              { "key": "indicator_id", "value": "{{indicator_id}}", "type": "text" },
+              { "key": "major_name", "value": "{{major_name}}", "type": "text" },
+              { "key": "year", "value": "{{year}}", "type": "text" },
+              { "key": "operation_result", "value": "<p>ผลการดำเนินงานพร้อมไฟล์</p>", "type": "text" },
+              { "key": "evidence_files", "type": "file", "src": [] },
+              { "key": "evidence_name", "value": "หลักฐานทดสอบ", "type": "text" },
+              { "key": "evidence_number", "value": "1", "type": "text" }
+            ]}
+          }
+        },
+        {
+          "name": "POST Remove File",
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/evaluations-actual/remove-file",
+            "body": { "mode": "raw", "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"indicator_id\": \"{{indicator_id}}\",\n  \"major_name\": \"{{major_name}}\",\n  \"filename\": \"FILENAME_TO_REMOVE\"\n}" }
+          }
+        },
+        {
+          "name": "POST Submit for Review",
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/evaluations-actual/EVAL_ID/submit"
+          }
+        },
+        {
+          "name": "POST Approve",
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/evaluations-actual/EVAL_ID/approve",
+            "body": { "mode": "raw", "raw": "{\n  \"approved_by\": \"admin_user_id\"\n}" }
+          }
+        },
+        {
+          "name": "POST Edit Approved (expect 403)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Should return 403 for approved record', () => pm.expect(pm.response.code).to.equal(403));",
+            "pm.test('Error is cannot_edit_approved', () => pm.expect(pm.response.json().error).to.equal('cannot_edit_approved'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/evaluations-actual",
+            "body": { "mode": "formdata", "formdata": [
+              { "key": "session_id", "value": "{{session_id}}", "type": "text" },
+              { "key": "indicator_id", "value": "{{indicator_id}}", "type": "text" },
+              { "key": "major_name", "value": "{{major_name}}", "type": "text" },
+              { "key": "operation_result", "value": "<p>พยายามแก้ไขหลังอนุมัติ</p>", "type": "text" }
+            ]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏛️ Committee Evaluations",
+      "item": [
+        {
+          "name": "GET Committee Evaluations",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/committee-evaluations?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","committee-evaluations"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Save Committee Evaluation",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success true', () => pm.expect(pm.response.json().success).to.be.true);"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/committee-evaluations",
+            "body": { "mode": "raw", "raw": "{\n  \"session_id\": \"{{session_id}}\",\n  \"major_name\": \"{{major_name}}\",\n  \"indicator_id\": \"{{indicator_id}}\",\n  \"committee_score\": 3,\n  \"strengths\": \"<p>จุดเด่นทดสอบ</p>\",\n  \"improvements\": \"<p>จุดที่ควรพัฒนาทดสอบ</p>\",\n  \"development_plan\": \"<p>แผนพัฒนาทดสอบ</p>\",\n  \"year\": \"{{year}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Files (MinIO)",
+      "item": [
+        {
+          "name": "GET View File",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200 or 302', () => pm.expect([200, 302]).to.include(pm.response.code));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/view/FILENAME_HERE"
+          }
+        },
+        {
+          "name": "GET View File (not found, expect 404)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Should return 404', () => pm.expect(pm.response.code).to.equal(404));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/view/nonexistent_file_12345.pdf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 ESAR Metadata & PDF",
+      "item": [
+        {
+          "name": "GET ESAR Metadata",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/esar-metadata?major_name={{major_name}}&year={{year}}", "host": ["{{base_url}}"], "path": ["api","esar-metadata"], "query": [{ "key": "major_name", "value": "{{major_name}}" }, { "key": "year", "value": "{{year}}" }] }
+          }
+        },
+        {
+          "name": "POST Save ESAR Metadata",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/esar-metadata",
+            "body": { "mode": "raw", "raw": "{\n  \"major_name\": \"{{major_name}}\",\n  \"year\": \"{{year}}\",\n  \"university_info\": \"<p>ข้อมูลมหาวิทยาลัย</p>\",\n  \"program_info\": \"<p>ข้อมูลหลักสูตร</p>\"\n}" }
+          }
+        },
+        {
+          "name": "POST Generate PDF",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Content-Type is PDF', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/generate-pdf",
+            "body": { "mode": "raw", "raw": "{\n  \"program_name\": \"{{major_name}}\",\n  \"year\": \"{{year}}\",\n  \"faculty_name\": \"วิศวกรรมศาสตร์\",\n  \"university_name\": \"มหาวิทยาลัยเทคโนโลยีราชมงคลศรีวิชัย\",\n  \"university_info\": \"<p>ข้อมูลมหาวิทยาลัย</p>\",\n  \"program_info\": \"<p>ข้อมูลหลักสูตร</p>\",\n  \"components\": []\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔒 Security Tests",
+      "item": [
+        {
+          "name": "No Token (expect 401)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Should return 401 without token', () => pm.expect(pm.response.code).to.equal(401));"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "url": "{{base_url}}/api/users" }
+        },
+        {
+          "name": "Invalid Token (expect 401)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Should return 401 with invalid token', () => pm.expect(pm.response.code).to.equal(401));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer invalid.token.here" }],
+            "url": "{{base_url}}/api/users"
+          }
+        },
+        {
+          "name": "Deleted Typo Endpoint (expect 404)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Typo endpoint removed (404)', () => pm.expect(pm.response.code).to.equal(404));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/api/evaluation_tual/remove-file",
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Admin",
+      "item": [
+        {
+          "name": "GET DB Stats",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ], "type": "text/javascript" }}],
+          "request": {
+            "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/admin/db-stats"
+          }
+        },
+        {
+          "name": "GET Public Stats",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ], "type": "text/javascript" }}],
+          "request": { "method": "GET", "url": "{{base_url}}/api/public-stats" }
+        }
+      ]
+    }
+  ]
+}

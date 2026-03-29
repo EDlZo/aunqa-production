@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node server-mongo.cjs",
+    "test:api": "node scripts/test-api.cjs",
     "migrate-to-mongo": "node scripts/migrate-firebase-to-mongo.cjs",
     "remap-ids": "node scripts/remap-ids.cjs",
     "install-deps": "npm install --legacy-peer-deps"

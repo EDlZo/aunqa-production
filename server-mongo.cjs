@@ -259,10 +259,22 @@ function generateFilename(originalname) {
   return `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(originalname)}`;
 }
 
-// Debug middleware
+// Request logging middleware
 app.use((req, res, next) => {
-  console.log(`[REQ] [${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`);
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    const level = res.statusCode >= 500 ? '❌' : res.statusCode >= 400 ? '⚠️' : '✅';
+    console.log(`${level} [${new Date().toLocaleTimeString()}] ${req.method} ${req.path} ${res.statusCode} (${ms}ms)`);
+  });
   next();
+});
+
+// Global auth middleware — ยกเว้น public routes
+const PUBLIC_ROUTES = ['/api/login', '/api/ping', '/api/public-stats'];
+app.use((req, res, next) => {
+  if (PUBLIC_ROUTES.includes(req.path)) return next();
+  return authMiddleware(req, res, next);
 });
 
 // ================= AUTH =================
@@ -765,10 +777,6 @@ app.post('/api/evaluations-actual/:id/reject', async (req, res) => {
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Aliases for frontend typos
-app.post('/api/evaluation_tual/remove-file', (req, res, next) => { req.url = '/api/evaluations-actual/remove-file'; next(); });
-app.post('/api/evaluation_tual/append-files', (req, res, next) => { req.url = '/api/evaluations-actual/append-files'; next(); });
-
 // ================= COMMITTEE EVALUATIONS =================
 app.post('/api/committee-evaluations', async (req, res) => {
   try {
@@ -959,8 +967,13 @@ app.get('/api/view/:filename', async (req, res) => {
       if (meta[filename]?.url) return res.redirect(meta[filename].url);
     }
 
-    // Try to get presigned URL from MinIO
+    // Try to get presigned URL from MinIO (validate object exists first)
     try {
+      await new Promise((resolve, reject) => {
+        minioClient.statObject(MINIO_BUCKET, filename, (err, stat) => {
+          if (err) reject(err); else resolve(stat);
+        });
+      });
       const url = await getMinioPresignedUrl(filename);
       return res.redirect(url);
     } catch (e) { /* not found in minio */ }
