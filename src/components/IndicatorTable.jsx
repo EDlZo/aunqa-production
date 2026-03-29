@@ -243,7 +243,7 @@ export default function IndicatorTable({
       const seen = new Set();
       const deduped = [];
       for (const ev of byIndicator) {
-        const key = String(ev.evaluation_id || `${ev.session_id}-${ev.indicator_id}-${ev.created_at}`);
+        const key = String(ev._id || ev.id || ev.evaluation_id || `${ev.session_id}-${ev.indicator_id}-${ev.created_at}`);
         if (!seen.has(key)) { seen.add(key); deduped.push(ev); }
       }
 
@@ -667,7 +667,7 @@ export default function IndicatorTable({
             <div className="p-4">
               <div className="space-y-4">
                 {evaluationHistory.map((evaluation, index) => (
-                  <div key={evaluation.evaluation_id} className="border border-gray-200 rounded-2xl p-4 bg-gray-50">
+                  <div key={evaluation._id || evaluation.id || index} className="border border-gray-200 rounded-2xl p-4 bg-gray-50">
                     <div className="flex justify-between items-start mb-3">
                       <span className="text-sm font-medium text-gray-900">
                         การประเมินครั้งที่ {evaluationHistory.length - index}

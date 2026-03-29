@@ -280,7 +280,7 @@ export default function AssessmentFormModal({ indicator, selectedProgram, onComp
             </h4>
             <div className="space-y-4">
               {evaluationHistory.map((evaluation, index) => (
-                <div key={evaluation.evaluation_id} className="border border-gray-200 rounded-2xl p-4 bg-gray-50">
+                <div key={evaluation._id || evaluation.id || index} className="border border-gray-200 rounded-2xl p-4 bg-gray-50">
                   <div className="flex justify-between items-start mb-3">
                     <span className="text-sm font-medium text-gray-900">
                       การประเมินครั้งที่ {evaluationHistory.length - index}

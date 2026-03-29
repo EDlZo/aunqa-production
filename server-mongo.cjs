@@ -613,13 +613,16 @@ app.post('/api/evaluations-actual', upload.array('evidence_files', 10), async (r
       major_name, status, keep_existing, year, metadata_overrides } = req.body;
 
     // Block editing approved evaluations
-    const approved = await EvaluationActual.findOne({ session_id, indicator_id, status: 'approved' });
-    if (approved) return res.status(403).json({ error: 'cannot_edit_approved', message: 'รายการนี้ได้รับการอนุมัติแล้ว ไม่สามารถแก้ไขได้' });
+    // Block editing approved evaluations (only check the LATEST record for this indicator/session)
+    const latest = await EvaluationActual.findOne({ session_id, indicator_id, major_name }).sort({ created_at: -1 });
+    if (latest && latest.status === 'approved') {
+      return res.status(403).json({ error: 'cannot_edit_approved', message: 'รายการนี้ได้รับการอนุมัติแล้ว ไม่สามารถแก้ไขได้' });
+    }
 
     let evidenceFiles = [], evidenceMeta = {};
 
     if (keep_existing === 'true') {
-      const existing = await EvaluationActual.findOne({ session_id, indicator_id, major_name }).sort({ created_at: -1 });
+      const existing = latest; // We already fetched it above
       if (existing) {
         evidenceFiles = JSON.parse(existing.evidence_files_json || '[]');
         evidenceMeta  = JSON.parse(existing.evidence_meta_json  || '{}');
@@ -650,12 +653,23 @@ app.post('/api/evaluations-actual', upload.array('evidence_files', 10), async (r
       evidenceMeta[urlKey] = { name: evidence_name || 'URL Evidence', number: evidence_number || '1', url: evidence_url };
     }
 
-    const doc = await EvaluationActual.create({
-      session_id, indicator_id, operation_result, operation_score: operation_score ? parseFloat(operation_score) : null,
-      reference_score: reference_score ? parseFloat(reference_score) : null, goal_achievement,
-      evidence_files_json: JSON.stringify(evidenceFiles), evidence_meta_json: JSON.stringify(evidenceMeta),
-      comment, major_name, year: year || null, status: status || 'submitted'
-    });
+    const updateData = {
+      operation_result,
+      operation_score: operation_score ? parseFloat(operation_score) : null,
+      reference_score: reference_score ? parseFloat(reference_score) : null,
+      goal_achievement,
+      evidence_files_json: JSON.stringify(evidenceFiles),
+      evidence_meta_json: JSON.stringify(evidenceMeta),
+      comment,
+      year: year || null,
+      status: status || 'submitted'
+    };
+
+    const doc = await EvaluationActual.findOneAndUpdate(
+      { _id: latest ? latest._id : new mongoose.Types.ObjectId() },
+      { $set: { ...updateData, session_id, indicator_id, major_name } },
+      { upsert: true, new: true, runValidators: true }
+    );
     res.json({ success: true, evaluation_id: doc._id, evidence_files: evidenceFiles });
   } catch (err) { res.status(500).json({ error: 'บันทึกผลการดำเนินงานไม่สำเร็จ', details: err.message }); }
 });
@@ -667,7 +681,7 @@ app.get('/api/evaluations-actual/history', async (req, res) => {
     const filter = { major_name };
     if (year) filter.year = year;
     if (session_id) filter.session_id = session_id;
-    res.json(await EvaluationActual.find(filter));
+    res.json(await EvaluationActual.find(filter).sort({ created_at: -1 }));
   } catch (err) { res.status(500).json({ error: 'ไม่สามารถดึงประวัติการดำเนินงานได้', details: err.message }); }
 });
 
@@ -677,11 +691,9 @@ app.post('/api/evaluations-actual/append-files', upload.array('evidence_files', 
     const { session_id, indicator_id, major_name, evidence_number, evidence_name } = req.body;
     if (!session_id || !indicator_id) return res.status(400).json({ error: 'ต้องระบุ session_id และ indicator_id' });
 
-    let targetEval = await EvaluationActual.findOne({ session_id, indicator_id }).sort({ created_at: -1 });
-    let isNew = false;
+    let targetEval = await EvaluationActual.findOne({ session_id, indicator_id, major_name }).sort({ created_at: -1 });
     if (!targetEval) {
       targetEval = new EvaluationActual({ session_id, indicator_id, major_name, evidence_files_json: '[]', evidence_meta_json: '{}', status: 'submitted' });
-      isNew = true;
     }
 
     const evidenceFiles = JSON.parse(targetEval.evidence_files_json || '[]');
@@ -696,9 +708,15 @@ app.post('/api/evaluations-actual/append-files', upload.array('evidence_files', 
       evidenceMeta[filename] = { name: evidence_name || file.originalname, number: evidence_number || '1', url };
     }
 
-    targetEval.evidence_files_json = JSON.stringify(evidenceFiles);
-    targetEval.evidence_meta_json  = JSON.stringify(evidenceMeta);
-    await targetEval.save();
+    await EvaluationActual.findOneAndUpdate(
+      { _id: targetEval._id },
+      { 
+        $set: { 
+          evidence_files_json: JSON.stringify(evidenceFiles),
+          evidence_meta_json: JSON.stringify(evidenceMeta)
+        } 
+      }
+    );
     res.json({ success: true, files: evidenceFiles, meta: evidenceMeta });
   } catch (err) { res.status(500).json({ error: 'เพิ่มไฟล์ไม่สำเร็จ', details: err.message }); }
 });
@@ -706,19 +724,25 @@ app.post('/api/evaluations-actual/append-files', upload.array('evidence_files', 
 // Remove file from actual evaluation
 app.post('/api/evaluations-actual/remove-file', async (req, res) => {
   try {
-    const { session_id, indicator_id, filename } = req.body;
+    const { session_id, indicator_id, major_name, filename } = req.body;
     if (!session_id || !indicator_id || !filename) return res.status(400).json({ error: 'ต้องระบุ session_id, indicator_id และ filename' });
 
-    const targetEval = await EvaluationActual.findOne({ session_id, indicator_id }).sort({ created_at: -1 });
+    const targetEval = await EvaluationActual.findOne({ session_id, indicator_id, major_name }).sort({ created_at: -1 });
     if (!targetEval) return res.status(404).json({ error: 'ไม่พบข้อมูลการประเมิน' });
 
     const evidenceFiles = JSON.parse(targetEval.evidence_files_json || '[]').filter(f => f !== filename);
     const evidenceMeta  = JSON.parse(targetEval.evidence_meta_json  || '{}');
     delete evidenceMeta[filename];
 
-    targetEval.evidence_files_json = JSON.stringify(evidenceFiles);
-    targetEval.evidence_meta_json  = JSON.stringify(evidenceMeta);
-    await targetEval.save();
+    await EvaluationActual.findOneAndUpdate(
+      { _id: targetEval._id },
+      { 
+        $set: { 
+          evidence_files_json: JSON.stringify(evidenceFiles),
+          evidence_meta_json: JSON.stringify(evidenceMeta)
+        } 
+      }
+    );
 
     // Try to delete from MinIO
     try { await deleteFromMinio(`evidence_actual/${session_id}/${indicator_id}/${filename}`); } catch (e) { /* ignore */ }

@@ -64,7 +64,7 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
 
   useEffect(() => {
     // โหลดข้อมูลเกณฑ์การประเมินและการประเมินเดิมจาก props (ถ้ามี)
-    if (allEvaluations && allEvaluationsActual) {
+    if (allEvaluations) {
       const criteria = allEvaluations.find(ev => String(ev.indicator_id) === String(indicator.id));
       if (criteria) {
         setCriteriaData({
@@ -72,32 +72,14 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
           score: criteria.score || ''
         });
       }
-
-      const existing = allEvaluationsActual.find(ev => String(ev.indicator_id) === String(indicator.id));
-      if (existing) {
-        setOperationResult(existing.operation_result || '');
-        setOperationScore(existing.operation_score || '');
-        setReferenceScore(existing.reference_score || '');
-        setGoalAchievement(existing.goal_achievement || '');
-        setEvidenceNumber(existing.evidence_number || '');
-        setEvidenceName(existing.evidence_name || '');
-        setEvidenceUrl(existing.evidence_url || '');
-        setComment(existing.comment || '');
-      }
-
-      // สำหรับประวัติ (evaluationHistory) ถ้าจะให้สมบูรณ์ควรกรองจาก allEvaluationsActual 
-      // แต่ในโมดอลเดิมมีการ fetch แยกเพื่อเอาประวัติทั้งหมดทุก session
-      // เพื่อความเร็ว เราจะใช้ข้อมูลปัจจุบันก่อน แล้วค่อย fetch history จริงๆ เพิ่มเติม
-      const currentHistory = allEvaluationsActual
-        .filter(ev => String(ev.indicator_id) === String(indicator.id))
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setEvaluationHistory(currentHistory);
     } else {
       fetchCriteriaData();
-      fetchExistingEvaluation();
-      fetchEvaluationHistory();
     }
-  }, [indicator, allEvaluations, allEvaluationsActual]);
+
+    // Always fetch fresh evaluation data from server to avoid stale props
+    fetchExistingEvaluation();
+    fetchEvaluationHistory();
+  }, [indicator, allEvaluations]);
 
   const fetchCriteriaData = async () => {
     try {
@@ -470,7 +452,8 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
       });
       if (res.ok) {
         showAlert({ title: 'สำเร็จ', message: 'ลบไฟล์เรียบร้อยแล้ว', type: 'success' });
-        fetchExistingData();
+        await fetchExistingEvaluation();
+        await fetchEvaluationHistory();
       } else {
         const err = await res.json();
         showAlert({ title: 'ข้อผิดพลาด', message: err.error, type: 'error' });
@@ -847,15 +830,12 @@ export default function EvaluationFormModal({ indicator, selectedProgram, onComp
                       })()}
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="bg-white p-3 rounded border border-gray-200">
                       <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">คะแนนผลการดำเนินงาน</div>
                       <div className="text-sm font-bold text-gray-800">{evaluation.operation_score || '0.0'}</div>
                     </div>
-                    <div className="bg-white p-3 rounded border border-gray-200">
-                      <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">คะแนนอ้างอิงเกณฑ์</div>
-                      <div className="text-sm font-bold text-gray-800">{evaluation.reference_score || '0.0'}</div>
-                    </div>
+
                     <div className="bg-white p-3 rounded border border-gray-200">
                       <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">การบรรลุเป้า</div>
                       <div className={`text-sm font-bold ${evaluation.goal_achievement === 'บรรลุ' ? 'text-green-600' : 'text-amber-600'}`}>{evaluation.goal_achievement || '-'}</div>

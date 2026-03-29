@@ -91,7 +91,7 @@ export default function AssessmentTablePage({ setActiveTab }) {
           if (files.length === 0) return;
           files.forEach(fname => {
             flattened.push({
-              evaluation_id: r.evaluation_id,
+              evaluation_id: r._id || r.id || r.evaluation_id || index,
               indicator_id: String(r.indicator_id),
               file: fname,
               created_at: r.created_at
@@ -219,7 +219,7 @@ export default function AssessmentTablePage({ setActiveTab }) {
                   const name = ind.indicator_name || 'ไฟล์หลักฐาน';
                   const href = `/uploads/${row.file}`;
                   return (
-                    <tr key={`${row.evaluation_id}-${idx}`}>
+                    <tr key={`${row.evaluation_id || row._id || row.id || idx}-${idx}`}>
                       <td className="px-4 py-2 text-sm text-gray-800 border-r border-gray-100">{code}</td>
                       <td className="px-4 py-2 text-sm text-gray-800">
                         <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all">{name}</a>

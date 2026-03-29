@@ -182,7 +182,7 @@ export default function ReportSection() {
         </thead>
         <tbody>
           {history.map((ev) => (
-            <tr key={ev.evaluation_id} className="border-t border-gray-200">
+            <tr key={ev._id || ev.id || ev.evaluation_id || idx} className="border-t border-gray-200">
               <td className="py-2 px-3">{ev.score}</td>
               <td className="py-2 px-3">{ev.comment}</td>
               <td className="py-2 px-3">{ev.evidence_file || '-'}</td>
