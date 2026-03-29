@@ -1017,11 +1017,47 @@ app.get('/api/public-stats', async (req, res) => {
       averageScore = (sum / approvedEvals.length).toFixed(1);
     }
 
+    // Calculate topComponents progress
+    const components = await QualityComponent.find();
+    // Use a Map to group by name to handle duplicates from different sessions
+    const componentMap = new Map(); 
+    for (const comp of components) {
+      if (!componentMap.has(comp.quality_name)) {
+        componentMap.set(comp.quality_name, { id: comp.component_id, name: comp.quality_name });
+      }
+    }
+
+    const topComponents = [];
+    const uniqueCompNames = Array.from(componentMap.keys()).slice(0, 3);
+
+    for (const name of uniqueCompNames) {
+      const compInfo = componentMap.get(name);
+      // Find all indicators for this component ID (agnostic of session for global stats)
+      const indicators = await Indicator.find({ component_id: compInfo.id });
+      if (indicators.length === 0) {
+        topComponents.push({ name, progress: 0 });
+        continue;
+      }
+
+      const indicatorIds = indicators.map(ind => String(ind._id));
+      const approvedCountForComp = await EvaluationActual.countDocuments({
+        indicator_id: { $in: indicatorIds },
+        status: 'approved'
+      });
+
+      const progress = Math.round((approvedCountForComp / indicators.length) * 100);
+      topComponents.push({ name, progress });
+    }
+
     res.json({
       userCount,
       indicatorCount,
       averageScore: String(averageScore),
-      topComponents: [] // Initialize as empty for now to satisfy HeroSection
+      topComponents: topComponents.length > 0 ? topComponents : [
+        { name: 'องค์ประกอบที่ 1', progress: 0 },
+        { name: 'องค์ประกอบที่ 2', progress: 0 },
+        { name: 'องค์ประกอบที่ 3', progress: 0 }
+      ]
     });
   } catch (err) {
     res.json({ userCount: 0, indicatorCount: 0, averageScore: "0.0", topComponents: [] });

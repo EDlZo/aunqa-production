@@ -7,7 +7,7 @@ export default function HeroSection({ onGoResults, onGoProcess, publicStats }) {
     { icon: <Award className="w-6 h-6" />, label: "มาตรฐานสากล", value: "AUN-QA" },
     { icon: <Users className="w-6 h-6" />, label: "ผู้ประเมิน", value: `${publicStats?.userCount || 0}` },
     { icon: <Target className="w-6 h-6" />, label: "ตัวบ่งชี้", value: `${publicStats?.indicatorCount || 0}` },
-    { icon: <TrendingUp className="w-6 h-6" />, label: "คะแนนเฉลี่ย", value: `${publicStats?.averageScore || "0.0"}/5` }
+    { icon: <TrendingUp className="w-6 h-6" />, label: "คะแนนเฉลี่ย", value: `${publicStats?.averageScore || "0.0"}` }
   ];
 
   // Helper for dynamic component bars
