@@ -1159,6 +1159,17 @@ app.post('/api/esar-metadata', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'บันทึกข้อมูล ESAR metadata ไม่สำเร็จ', details: err.message }); }
 });
 
+// ================= SERVE FRONTEND =================
+const distPath = path.join(__dirname, 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(distPath, 'index.html'));
+    }
+  });
+}
+
 // ================= START SERVER =================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

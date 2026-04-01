@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: aunqa_mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  minio:
+    image: minio/minio
+    container_name: aunqa_minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aunqa_backend
+    restart: always
+    depends_on:
+      - mongo
+      - minio
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/aunqa_db
+      JWT_SECRET: fde6c9c1e5993a3070a3e5604c4c176b59f3e5e8a7ec446ce678bd3679b1e8e11fa8f3f8232fd5582f7301013e74de03
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: aunqa-files
+      MINIO_USE_SSL: "false"
+      PORT: 5000
+      NODE_ENV: production
+      CORS_ORIGIN: "*"
+
+volumes:
+  mongo_data:
+  minio_data:
