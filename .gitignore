@@ -35,6 +35,11 @@ firebase-debug.log
 .env.production
 .env.staging
 
+# Frontend/Backend build artifacts
+frontend/dist
+frontend/node_modules
+backend/node_modules
+
 # Uploads
 uploads/*
 !uploads/.gitkeep

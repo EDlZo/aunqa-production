@@ -1,0 +1,26 @@
+{
+  "name": "aunqa-esar-backend",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "start": "node server-mongo.cjs",
+    "dev": "node --watch server-mongo.cjs",
+    "create-admin": "node scripts/create-admin.cjs"
+  },
+  "dependencies": {
+    "@sparticuz/chromium-min": "^143.0.4",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "minio": "^8.0.7",
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.16.2",
+    "multer": "^2.0.1",
+    "puppeteer-core": "^22.6.0"
+  },
+  "devDependencies": {
+    "puppeteer": "^22.6.0"
+  }
+}

@@ -1,0 +1,95 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+  SWARMPIT_STACK_NAME: aunqa-esar
+  CI_REGISTRY: registry.rmutsv.app
+  CI_REGISTRY_FRONTEND_IMAGE: registry.rmutsv.app/wrf/aunqa-esar/frontend
+  CI_REGISTRY_BACKEND_IMAGE: registry.rmutsv.app/wrf/aunqa-esar/backend
+
+# ===========================================
+# Build Frontend
+# ===========================================
+build-frontend:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - frontend/**
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  script:
+    - echo "Building frontend image..."
+    - docker build
+        --build-arg VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        -t ${CI_REGISTRY_FRONTEND_IMAGE}:${CI_COMMIT_SHA}
+        ./frontend
+    - docker push ${CI_REGISTRY_FRONTEND_IMAGE}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY_FRONTEND_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_FRONTEND_IMAGE}:latest
+    - docker push ${CI_REGISTRY_FRONTEND_IMAGE}:latest
+    - echo "Frontend image pushed successfully"
+
+# ===========================================
+# Build Backend
+# ===========================================
+build-backend:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+  script:
+    - echo "Building backend image..."
+    - docker build -t ${CI_REGISTRY_BACKEND_IMAGE}:${CI_COMMIT_SHA} ./backend
+    - docker push ${CI_REGISTRY_BACKEND_IMAGE}:${CI_COMMIT_SHA}
+    - docker tag ${CI_REGISTRY_BACKEND_IMAGE}:${CI_COMMIT_SHA} ${CI_REGISTRY_BACKEND_IMAGE}:latest
+    - docker push ${CI_REGISTRY_BACKEND_IMAGE}:latest
+    - echo "Backend image pushed successfully"
+
+# ===========================================
+# Deploy Stack via Swarmpit API
+# ===========================================
+deploy:
+  stage: deploy
+  image: alpine:latest
+  only:
+    - main
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      echo "Step 1: Updating stack definition in Swarmpit..."
+
+      COMPOSE_CONTENT=$(cat docker-compose.yml | jq -Rs .)
+
+      curl -X POST "${SWARMPIT_URL}/api/stacks/${SWARMPIT_STACK_NAME}" \
+        -H "Authorization: Bearer ${SWARMPIT_TOKEN}" \
+        -H "Content-Type: application/json" \
+        -d "{\"name\":\"${SWARMPIT_STACK_NAME}\",\"spec\":{\"compose\":${COMPOSE_CONTENT}}}" \
+        --fail --silent --show-error
+
+      echo ""
+      echo "Step 2: Redeploying stack..."
+
+      curl -X POST "${SWARMPIT_URL}/api/stacks/${SWARMPIT_STACK_NAME}/redeploy" \
+        -H "Authorization: Bearer ${SWARMPIT_TOKEN}" \
+        -H "Content-Type: application/json" \
+        --fail --silent --show-error
+
+      echo ""
+      echo "Stack ${SWARMPIT_STACK_NAME} updated and redeployed successfully!"
+      echo ""
+      echo "URLs:"
+      echo "  - Frontend: https://${FRONTEND_HOST}"
+      echo "  - Backend:  https://${BACKEND_HOST}"
