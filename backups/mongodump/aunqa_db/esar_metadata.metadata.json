@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"year":{"$numberInt":"1"},"major_name":{"$numberInt":"1"}},"name":"year_1_major_name_1","background":true,"unique":true}],"uuid":"f6304bd414b84cf19655a8e3cb3c2465","collectionName":"esar_metadata","type":"collection"}
